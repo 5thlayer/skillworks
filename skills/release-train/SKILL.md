@@ -10,7 +10,7 @@ The cars run in one order: Groundworks → Beltworks → Craftworks → Pack. Be
 | Car | Checkout | Releases with | Its rules |
 |---|---|---|---|
 | Groundworks | `~/minecraft_mods/groundworks` | `scripts/release.sh <version>` | `docs/agents/releases.md`, ADR 0001 |
-| Beltworks | `~/minecraft_mods/beltworks` | `scripts/release.sh <version>` | `docs/agents/releases.md` |
+| Beltworks | `~/minecraft_mods/beltworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
 | Craftworks | `~/minecraft_mods/craftworks` | `scripts/release.sh <version>` | `docs/agents/releases.md` |
 | Pack | `~/curseforge/Instances/PlanetaryFactory` | `scripts/sync-local-jars.py <mod>=<version>` | `CLAUDE.md`, "local jar" |
 
@@ -31,8 +31,8 @@ Each checkout has one owner: the session whose working directory it is (`list_se
    Done when the user has approved every car's version.
 3. **Run the cars in order.** Each owner releases its own car, only after the car before it is in `~/.m2`:
    - Groundworks: a line under `## Unreleased` in `CHANGELOG.md`, then `scripts/release.sh`.
-   - Beltworks: `prefer` (and the range for a minor), a changelog line naming the Groundworks it now nests, then `scripts/release.sh`. The published jar's `META-INF/jarjar/metadata.json` names that Groundworks.
+   - Beltworks: `prefer` (and the range for a minor), a changelog line naming the Groundworks it now nests, then `scripts/release.sh --no-upload <version>`. Without `--no-upload` it would also upload the jar to Modrinth and CurseForge, publicly and for good, before the user's word and before the Pack's `--check` passes on the new pin. The published jar's `META-INF/jarjar/metadata.json` names that Groundworks.
    - Craftworks: a line under `## Unreleased` in `CHANGELOG.md`, then `scripts/release.sh`.
    - Pack: `scripts/sync-local-jars.py` with a `<mod>=<version>` for each car that moved (`beltworks=…`, `craftworks=…`), then the Pack's tests, which run `--check`.
    Done when `status.sh` shows every planned version in `~/.m2` and the Pack's `--check` passes on the new pin.
-4. **Push.** The session the user tells to push pushes every car itself, in train order, with its new tags: `git -C <checkout> push origin main <tags>`. A push publishes commits the owners already made, so it needs no owner's word, only the user's. Push exactly the commits and tags `status.sh` listed; if `git log origin/main..HEAD` shows any more, ask the user first. Then tell each owner its car is pushed. Done when `status.sh` shows no unpushed commits or tags.
+4. **Push.** The session the user tells to push pushes every car itself, in train order, with its new tags: `git -C <checkout> push origin main <tags>`. A push publishes commits the owners already made, so it needs no owner's word, only the user's. Push exactly the commits and tags `status.sh` listed; if `git log origin/main..HEAD` shows any more, ask the user first. Then, if Beltworks moved, upload it from its checkout: `scripts/upload.py <version>`. Like the push, an upload is public and final (neither site lets a version be replaced), so it needs the user's word; it takes its tokens from 1Password by itself. A site that fails is retried alone with `scripts/upload.py --site <modrinth|curseforge> <version>`. Then tell each owner its car is pushed. Done when `status.sh` shows no unpushed commits or tags, and a moved Beltworks' upload output names both sites as uploaded or as already having the version.
