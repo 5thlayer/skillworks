@@ -1,0 +1,13 @@
+{
+  "name": "skillworks",
+  "version": "0.1.0",
+  "description": "Skills that act across the 5thlayer repos: the release train for its Libraries and the PlanetaryFactory Pack.",
+  "author": {
+    "name": "5thlayer",
+    "url": "https://github.com/5thlayer"
+  },
+  "repository": "https://github.com/5thlayer/skillworks",
+  "skills": [
+    "./skills/release-train"
+  ]
+}

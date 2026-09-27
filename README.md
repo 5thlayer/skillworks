@@ -1,0 +1,14 @@
+# Skillworks
+
+Claude Code skills that act across the 5thlayer repos, as a plugin marketplace.
+
+```bash
+claude plugin marketplace add 5thlayer/skillworks
+claude plugin install skillworks@skillworks
+```
+
+| Skill | Use it to |
+|---|---|
+| `release-train` | release Groundworks, Beltworks or Craftworks and carry the change to the PlanetaryFactory Pack |
+
+The terms the skills share are in [CONTEXT.md](CONTEXT.md).

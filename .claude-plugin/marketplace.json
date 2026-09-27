@@ -1,0 +1,15 @@
+{
+  "name": "skillworks",
+  "owner": {
+    "name": "5thlayer",
+    "url": "https://github.com/5thlayer"
+  },
+  "description": "Claude Code skills that act across the 5thlayer repos.",
+  "plugins": [
+    {
+      "name": "skillworks",
+      "source": "./",
+      "description": "Skills that act across the 5thlayer repos: the release train for its Libraries and the PlanetaryFactory Pack."
+    }
+  ]
+}
