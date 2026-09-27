@@ -55,7 +55,12 @@ The Pack's checkout usually belongs to another session. Keep `release-train`'s o
      gh label create ready-for-human --color 1d76db -R 5thlayer/<mod_id>
      ```
      `wontfix` is a GitHub default.
-   - Agent docs: `CLAUDE.md` and `docs/agents/` come from the template; read them and correct any line that doesn't hold for this Library. The README pitch is the Library's own.
+   - Agent docs: `CLAUDE.md` and `docs/agents/` come from the template. `CLAUDE.md` opens with a section, between `<!-- template-only: … -->` and `<!-- /template-only -->`, telling an agent the checkout is the template and not a Library; in a Library that's false, so delete it, markers and the blank line before them included:
+     ```bash
+     perl -0pi -e 's/\n<!-- template-only:.*?<!-- \/template-only -->\n//s' CLAUDE.md
+     ! grep -rn template-only CLAUDE.md docs
+     ```
+     Do the same whenever a Library later copies a `CLAUDE.md` change back from libworks. Then read both and correct any line that doesn't hold for this Library. The README pitch is the Library's own.
    - Carve only: commit `chore: fill the libworks template` once `sh ./gradlew build runGameTestServer` passes, and push. A fork commits its adoption of the template in `references/fork.md` step 5.
    - First issues: file the extraction's work in the new repo, labelled, one per step that moves something: the code and JVM tests (#1), the GameTests, the first release. The Pack's side stays on the Pack's issue (such as planetary-factory#476), which links them.
 
