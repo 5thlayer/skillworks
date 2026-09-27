@@ -9,7 +9,7 @@
     {
       "name": "skillworks",
       "source": "./",
-      "description": "Skills that act across the 5thlayer repos: the release train for its Libraries and the PlanetaryFactory Pack."
+      "description": "Skills that act across the 5thlayer repos: extracting a Library from the PlanetaryFactory Pack, and the release train for the Libraries and the Pack."
     }
   ]
 }

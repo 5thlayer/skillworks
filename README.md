@@ -9,6 +9,7 @@ claude plugin install skillworks@skillworks
 
 | Skill | Use it to |
 |---|---|
+| `extract-library` | carve a Library out of the Pack, or fork one from upstream, and rename one later |
 | `release-train` | release Groundworks, Beltworks or Craftworks and carry the change to the PlanetaryFactory Pack |
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
