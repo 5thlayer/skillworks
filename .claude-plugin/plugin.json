@@ -1,7 +1,7 @@
 {
   "name": "skillworks",
-  "version": "0.2.0",
-  "description": "Skills that act across the 5thlayer repos: extracting a Library from the PlanetaryFactory Pack, and the release train for the Libraries and the Pack.",
+  "version": "0.3.0",
+  "description": "Skills that act across the 5thlayer repos: extracting a Library from the PlanetaryFactory Pack, the release train for the Libraries and the Pack, and launching the game from any of them.",
   "author": {
     "name": "5thlayer",
     "url": "https://github.com/5thlayer"
@@ -9,6 +9,7 @@
   "repository": "https://github.com/5thlayer/skillworks",
   "skills": [
     "./skills/extract-library",
+    "./skills/quicklaunch",
     "./skills/release-train"
   ]
 }
