@@ -56,7 +56,7 @@ check "pack: refuses a player.env git would commit" 1 "not gitignored" "$pack"
 echo player.env > "$pack/.gitignore"
 check "pack: takes the Pack" 0 "mode: pack" "$pack"
 check "pack: reads the player from player.env" 0 "player: someone 00000000-0000-0000-0000-000000000001"$'\n' "$pack"
-check "pack: installs the jar first" 0 "run: ./gradlew :planetaryfactory_core:installToPack -q" "$pack"
+check "pack: installs the jar first" 0 "run: ./gradlew :factoryworks_core:installToPack -q" "$pack"
 check "pack: opens the most recent save" 0 "run: python3 scripts/launch.py --quickPlaySingleplayer World"$'\n' "$pack"
 ENV="PF_PLAYER_NAME=other" check "pack: the environment overrides player.env, one variable at a time" 0 \
     "player: other 00000000-0000-0000-0000-000000000001"$'\n' "$pack"

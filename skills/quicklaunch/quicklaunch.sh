@@ -80,7 +80,7 @@ if [[ -n $dry ]]; then
     echo "save: ${save:-none, to the menu}"
     if [[ $mode == pack ]]; then
         echo "player: $name $uuid"
-        echo "run: ./gradlew :planetaryfactory_core:installToPack -q"
+        echo "run: ./gradlew :factoryworks_core:installToPack -q"
     fi
     echo "run: $(printf '%q ' "${run[@]}" | sed 's/ $//')"
     if pgrep -f "$running" > /dev/null; then echo "a client is already running: a real run refuses."; fi
@@ -93,7 +93,7 @@ pgrep -f "$running" > /dev/null && fail "a client is already running; close the 
 log="${QUICKLAUNCH_LOG:-$(mktemp -t quicklaunch).log}"
 
 if [[ $mode == pack ]]; then
-    ./gradlew :planetaryfactory_core:installToPack -q
+    ./gradlew :factoryworks_core:installToPack -q
     PF_PLAYER_NAME=$name PF_PLAYER_UUID=$uuid nohup "${run[@]}" > "$log" 2>&1 &
     launcher=$!
     player=
