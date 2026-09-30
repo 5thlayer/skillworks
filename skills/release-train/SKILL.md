@@ -1,6 +1,6 @@
 ---
 name: release-train
-description: Release train for Groundworks, Beltworks, Craftworks and the PlanetaryFactory Pack. Use when a change in one must reach another — releasing Groundworks, Beltworks or Craftworks, moving the Groundworks that Beltworks nests, or syncing the Pack to a new Beltworks or Craftworks.
+description: Release train for Groundworks, Beltworks, Craftworks and the FactoryWorks Pack. Use when a change in one must reach another — releasing Groundworks, Beltworks or Craftworks, moving the Groundworks that Beltworks nests, or syncing the Pack to a new Beltworks or Craftworks.
 ---
 
 # Release train
@@ -12,7 +12,7 @@ The cars run in one order: Groundworks → Beltworks → Craftworks → Pack. Be
 | Groundworks | `~/minecraft_mods/groundworks` | `scripts/release.sh <version>` | `docs/agents/releases.md`, ADR 0001 |
 | Beltworks | `~/minecraft_mods/beltworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
 | Craftworks | `~/minecraft_mods/craftworks` | `scripts/release.sh <version>` | `docs/agents/releases.md` |
-| Pack | `~/curseforge/Instances/PlanetaryFactory` | `scripts/sync-local-jars.py <mod>=<version>` | `CLAUDE.md`, "local jar" |
+| Pack | `~/curseforge/Instances/FactoryWorks` | `scripts/sync-local-jars.py <mod>=<version>` | `CLAUDE.md`, "local jar" |
 
 Craftworks is the mod; "Personal Assembler" stays the name of its in-game feature. Its releases are tagged `v<version>` and publish `io.github.5thlayer:craftworks` to `~/.m2`. Until the Pack's `data/pack/local-jars.json` has a `craftworks` row, the Pack doesn't load it. Adding that row is the Pack's change, made when the Pack switches off its own `core/assembler/`.
 

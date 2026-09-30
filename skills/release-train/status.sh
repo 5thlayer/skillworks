@@ -7,7 +7,7 @@ m2="${MAVEN_REPO_LOCAL:-$HOME/.m2/repository}/io/github/5thlayer"
 gw="$HOME/minecraft_mods/groundworks"
 bw="$HOME/minecraft_mods/beltworks"
 cw="$HOME/minecraft_mods/craftworks"
-pack="$HOME/curseforge/Instances/PlanetaryFactory"
+pack="$HOME/curseforge/Instances/FactoryWorks"
 
 car() { # <name> <checkout> [artifact]
     local name=$1 dir=$2 artifact=${3:-}

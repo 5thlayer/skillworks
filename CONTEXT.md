@@ -1,11 +1,11 @@
 # Skillworks
 
-The Claude Code skills that act across the 5thlayer repos, installed as the `skillworks` plugin from this repo's marketplace. The rules behind the terms below are planetary-factory's ADR-0090, "Extracting a Library".
+The Claude Code skills that act across the 5thlayer repos, installed as the `skillworks` plugin from this repo's marketplace. The rules behind the terms below are FactoryWorks' ADR-0090, "Extracting a Library".
 
 ## Language
 
 **Pack**:
-PlanetaryFactory, the modpack that brings Factorio's rules to Minecraft.
+FactoryWorks, the modpack that brings Factorio's rules to Minecraft.
 
 **Library**:
 A 5thlayer mod the **Pack** consumes as a local jar pinned in the Pack's `data/pack/local-jars.json`. Beltworks, Groundworks and Craftworks are Libraries.

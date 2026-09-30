@@ -1,6 +1,6 @@
 ---
 name: quicklaunch
-description: Launch Minecraft for the checkout you're in, straight into its most recent save — a mod repo (libworks, Groundworks, Beltworks, Craftworks) opens its dev client, the PlanetaryFactory Pack installs its jar and opens the pack. Use only when the user asks for it — "quicklaunch", "quick launch", "launch the game", "open the client", "install the jar and launch" — never on your own initiative to check a change, since it opens a window on the user's screen.
+description: Launch Minecraft for the checkout you're in, straight into its most recent save — a mod repo (libworks, Groundworks, Beltworks, Craftworks) opens its dev client, the FactoryWorks Pack installs its jar and opens the pack. Use only when the user asks for it — "quicklaunch", "quick launch", "launch the game", "open the client", "install the jar and launch" — never on your own initiative to check a change, since it opens a window on the user's screen.
 ---
 
 # Quick launch

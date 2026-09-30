@@ -1,6 +1,6 @@
 ---
 name: extract-library
-description: Extract a Library out of the PlanetaryFactory Pack, or fork one from an upstream mod, under planetary-factory ADR-0090. Use when a Pack mechanic (such as core/energy/'s pole network) should become a 5thlayer mod of its own, when forking an upstream mod into a Library the way Beltworks forked SimpleBelts, when starting a repo from 5thlayer/libworks, or when renaming a Library.
+description: Extract a Library out of the FactoryWorks Pack, or fork one from an upstream mod, under FactoryWorks ADR-0090. Use when a Pack mechanic (such as core/energy/'s pole network) should become a 5thlayer mod of its own, when forking an upstream mod into a Library the way Beltworks forked SimpleBelts, when starting a repo from 5thlayer/libworks, or when renaming a Library.
 ---
 
 # Extract a Library
@@ -16,7 +16,7 @@ To rename a Library that already exists, skip the steps and read `references/ren
 
 | Checkout | Where |
 |---|---|
-| Pack | `~/curseforge/Instances/PlanetaryFactory` (remote `adamico/planetary-factory`) |
+| Pack | `~/curseforge/Instances/FactoryWorks` (remote `5thlayer/factoryworks`) |
 | libworks | `~/minecraft_mods/libworks` (template `5thlayer/libworks`) |
 | The new Library | `~/minecraft_mods/<mod_id>` |
 
@@ -24,7 +24,7 @@ The Pack's checkout usually belongs to another session. Keep `release-train`'s o
 
 ## Steps
 
-1. **Gate.** ADR-0090 extracts a mechanic only if all five hold, otherwise it stays in `planetaryfactory_core`:
+1. **Gate.** ADR-0090 extracts a mechanic only if all five hold, otherwise it stays in `factoryworks_core`:
    1. it makes sense without Factorio's rules;
    2. few Pack classes depend on it;
    3. its tests move without the Pack's corpus;
@@ -62,28 +62,28 @@ The Pack's checkout usually belongs to another session. Keep `release-train`'s o
      ```
      Do the same whenever a Library later copies a `CLAUDE.md` change back from libworks. Then read both and correct any line that doesn't hold for this Library. The README pitch is the Library's own.
    - Carve only: commit `chore: fill the libworks template` once `sh ./gradlew build runGameTestServer` passes, and push. A fork commits its adoption of the template in `references/fork.md` step 5.
-   - First issues: file the extraction's work in the new repo, labelled, one per step that moves something: the code and JVM tests (#1), the GameTests, the first release. The Pack's side stays on the Pack's issue (such as planetary-factory#476), which links them.
+   - First issues: file the extraction's work in the new repo, labelled, one per step that moves something: the code and JVM tests (#1), the GameTests, the first release. The Pack's side stays on the Pack's issue (such as factoryworks#476), which links them.
 
    Done when `gh run list -R 5thlayer/<mod_id>` shows the latest `main` run green. The template's CI builds, runs the GameTests and runs `reuse lint`, and it must be green before the first release.
 
-5. **Port the GameTests.** Move each GameTest that asserts the mechanic itself into the Library's `gametest/` package, registered in `<ClassName>GameTests.registerTests` and run by `--tests "<mod_id>:*"`. Replace the Pack's numbers with the Library's defaults or with test-local configuration. A GameTest that asserts the Pack's settings (a tier's Factorio number, a Pack tag, a Pack refusal) is a Binding test: it stays in the Pack under the `planetaryfactory:*` selector (#448), since a Library's own run can't see the Pack's settings. Done when the Library's `runGameTestServer` passes and every GameTest of the mechanic is listed as either moved or Binding.
+5. **Port the GameTests.** Move each GameTest that asserts the mechanic itself into the Library's `gametest/` package, registered in `<ClassName>GameTests.registerTests` and run by `--tests "<mod_id>:*"`. Replace the Pack's numbers with the Library's defaults or with test-local configuration. A GameTest that asserts the Pack's settings (a tier's Factorio number, a Pack tag, a Pack refusal) is a Binding test: it stays in the Pack under the `factoryworks:*` selector (#448), since a Library's own run can't see the Pack's settings. Done when the Library's `runGameTestServer` passes and every GameTest of the mechanic is listed as either moved or Binding.
 
 6. **Record the domain.** Write `CONTEXT.md` with the Library's terms. Keep libworks' ADR 0001 (semver below 1.0) as the Library's 0001, then number from 0002:
    - Copy each Pack ADR the Library inherits, unchanged apart from renumbering, under a note like the one heading Craftworks' imported ADRs. (Craftworks predates libworks, so its imports start at 0001; a Library from the template starts them at 0002.)
-     > **Imported from PlanetaryFactory ADR-00NN**, unchanged apart from renumbering. <Library> began as PlanetaryFactory's `core/<package>/`. Issue numbers (`#n`) and ADRs cited as PlanetaryFactory refer to adamico/planetary-factory. [ADR-00MM](…) records where <Library> departs from this decision; the glossary in `CONTEXT.md` has the current terms.
+     > **Imported from FactoryWorks ADR-00NN**, unchanged apart from renumbering. <Library> began as FactoryWorks' `core/<package>/`. Issue numbers (`#n`) and ADRs cited as FactoryWorks refer to 5thlayer/factoryworks. [ADR-00MM](…) records where <Library> departs from this decision; the glossary in `CONTEXT.md` has the current terms.
    - Then one ADR of the Library's own recording where it departs from those, as Craftworks' ADR 0006.
 
    Done when every Pack ADR that governs the moved code is either imported or named as staying with the Binding.
 
 7. **First release.** A line under `## Unreleased` in `CHANGELOG.md`, then `scripts/release.sh 0.1.0`. It refuses a dirty tree, and it builds, runs the GameTests, commits `chore: release 0.1.0`, publishes to `~/.m2` and tags. It pushes nothing: push `main` and the tag with the user's word. Done when `~/.m2/repository/io/github/5thlayer/<mod_id>/0.1.0/` holds the jar and the tag is on `origin`.
 
-8. **Switch the Pack.** This is one commit in the Pack, made by the Pack's owner, which you message with this list. The Pack's build must read `local-jars.json` without naming a Library, which is planetary-factory#475: while `gh issue view 475 -R adamico/planetary-factory --json state` says open, it comes first. Before the release, the owner can try the switch against your checkout with `-PsiblingBuilds=<mod_id>`, once the row below is in the Pack's tree (`settings.gradle` refuses a name with no row); a green run under it proves nothing about the pinned jar.
+8. **Switch the Pack.** This is one commit in the Pack, made by the Pack's owner, which you message with this list. The Pack's build must read `local-jars.json` without naming a Library, which is factoryworks#475: while `gh issue view 475 -R 5thlayer/factoryworks --json state` says open, it comes first. Before the release, the owner can try the switch against your checkout with `-PsiblingBuilds=<mod_id>`, once the row below is in the Pack's tree (`settings.gradle` refuses a name with no row); a green run under it proves nothing about the pinned jar.
    - Add a row to `data/pack/local-jars.json`: `{"mod": "<mod_id>", "group": "io.github.5thlayer", "artifact": "<mod_id>", "version": "0.1.0", "pattern": "<mod_id>-*.jar"}`, with `"nests": [...]` if the Library jar-in-jars another.
    - `scripts/sync-local-jars.py <mod_id>=0.1.0`, which installs the jar, refreshes the manifest and rebuilds.
    - Rewrite the Pack's imports to `io.github._5thlayer.<mod_id>`. Keep the Bindings.
    - Delete the Pack's copies of the code and of every test that moved (ADR-0090's tests rule). The Pack's belt GameTests ran beside Beltworks' own until #438 deleted them; don't repeat that.
    - Update the Pack's `CLAUDE.md` where it describes the mechanic.
 
-   Done when the Pack's `./gradlew :planetaryfactory_core:build`, `runGameTestServer` and `tests/pack/test_local_jars.py` pass on that commit.
+   Done when the Pack's `./gradlew :factoryworks_core:build`, `runGameTestServer` and `tests/pack/test_local_jars.py` pass on that commit.
 
 9. **Add a `release-train` car.** In this repo (5thlayer/skillworks): add the Library's row to the car table in `skills/release-train/SKILL.md` and a sentence for what it waits on; add a `car <Name> "$HOME/minecraft_mods/<mod_id>" <mod_id>` line to `skills/release-train/status.sh`; name the Library in `skills/release-train/SKILL.md`'s description and in `README.md`'s row for `release-train`. Done when `status.sh` prints the new car with `0.1.0` in `~/.m2`.
