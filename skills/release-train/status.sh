@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # The release train's state: each car's version, what ~/.m2 holds, what isn't pushed, the Groundworks
-# Beltworks nests, and whether the Pack's mods/ matches its pins. It changes nothing but fetches.
+# Beltworks and Wireworks nest, and whether the Pack's mods/ matches its pins. It changes nothing but fetches.
 set -uo pipefail
 
 m2="${MAVEN_REPO_LOCAL:-$HOME/.m2/repository}/io/github/5thlayer"
 gw="$HOME/minecraft_mods/groundworks"
 bw="$HOME/minecraft_mods/beltworks"
+ww="$HOME/minecraft_mods/wireworks"
 cw="$HOME/minecraft_mods/craftworks"
 pack="$HOME/curseforge/Instances/FactoryWorks"
 
@@ -30,13 +31,21 @@ car() { # <name> <checkout> [artifact]
 
 car Groundworks "$gw" groundworks
 
+nests_groundworks() { # <checkout>
+    local dir=$1 range
+    echo "  nests Groundworks: $(grep -E "^\s*(strictly|prefer) " "$dir/build.gradle" | tr -s ' ' | tr '\n' ' ')"
+    # build.gradle keeps the range in one def, which both strictly and neoforge.mods.toml read.
+    range=$(sed -n "s/^def groundworksRange *= *'\(.*\)'.*/\1/p" "$dir/build.gradle")
+    [[ -n $range ]] && echo "  groundworksRange: $range"
+    echo "  neoforge.mods.toml requires: $(awk '/modId *= *"groundworks"/{on=1} on && /versionRange/{print $3; exit}' \
+        "$dir/src/main/resources/META-INF/neoforge.mods.toml")"
+}
+
 car Beltworks "$bw" beltworks
-echo "  nests Groundworks: $(grep -E "^\s*(strictly|prefer) " "$bw/build.gradle" | tr -s ' ' | tr '\n' ' ')"
-# build.gradle keeps the range in one def, which both strictly and neoforge.mods.toml read.
-range=$(sed -n "s/^def groundworksRange *= *'\(.*\)'.*/\1/p" "$bw/build.gradle")
-[[ -n $range ]] && echo "  groundworksRange: $range"
-echo "  neoforge.mods.toml requires: $(awk '/modId *= *"groundworks"/{on=1} on && /versionRange/{print $3; exit}' \
-    "$bw/src/main/resources/META-INF/neoforge.mods.toml")"
+nests_groundworks "$bw"
+
+car Wireworks "$ww" wireworks
+nests_groundworks "$ww"
 
 # Craftworks' artifact is its archives_name; until it has one, assume craftworks.
 cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/null)
