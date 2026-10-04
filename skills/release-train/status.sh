@@ -8,7 +8,11 @@ gw="$HOME/minecraft_mods/groundworks"
 bw="$HOME/minecraft_mods/beltworks"
 ww="$HOME/minecraft_mods/wireworks"
 cw="$HOME/minecraft_mods/craftworks"
-pack="${CURSEFORGE_ROOT:-$HOME/curseforge}/Instances/FactoryWorks"
+# The Pack's checkout: PACK_CHECKOUT, else the one CurseForge's instance links to, else ~/MC/factoryworks.
+pack=
+for p in "${PACK_CHECKOUT:-}" "${CURSEFORGE_ROOT:-$HOME/curseforge}/Instances/FactoryWorks" "$HOME/MC/factoryworks"; do
+    [[ -n $p && -f $p/data/pack/local-jars.json ]] && { pack="$(cd "$p" && pwd -P)"; break; }
+done
 
 car() { # <name> <checkout> [artifact]
     local name=$1 dir=$2 artifact=${3:-}
@@ -50,7 +54,12 @@ nests_groundworks "$ww"
 # Craftworks' artifact is its archives_name; until it has one, assume craftworks.
 cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/null)
 car Craftworks "$cw" "${cw_artifact:-craftworks}"
+echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/gradle.properties"), unnested"
 
+if [[ -z $pack ]]; then
+    echo "== Pack  not found: set PACK_CHECKOUT to its checkout"
+    exit 0
+fi
 car Pack "$pack"
 echo "  pin: $(python3 -c 'import json,sys; print(", ".join(f"{r["mod"]} {r["version"]}" for r in json.load(open(sys.argv[1]))["jars"]))' \
     "$pack/data/pack/local-jars.json")"

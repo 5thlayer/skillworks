@@ -16,7 +16,7 @@ To rename a Library that already exists, skip the steps and read `references/ren
 
 | Checkout | Where |
 |---|---|
-| Pack | `$CURSEFORGE_ROOT/Instances/FactoryWorks`, default root `~/curseforge` (remote `5thlayer/factoryworks`) |
+| Pack | `$PACK_CHECKOUT`, else the checkout `$CURSEFORGE_ROOT/Instances/FactoryWorks` links to, else `~/MC/factoryworks` (remote `5thlayer/factoryworks`) |
 | libworks | `~/minecraft_mods/libworks` (template `5thlayer/libworks`) |
 | The new Library | `~/minecraft_mods/<mod_id>` |
 
