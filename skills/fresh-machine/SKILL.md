@@ -13,7 +13,8 @@ A **bootstrap** puts every jar the Pack's manifest names on disk, byte for byte 
    - Java 25 builds the Libraries. The Pack's Gradle 8.13 daemon needs Java 21, and finds Java 25 for its toolchain through `org.gradle.java.installations.paths=<mise where java@temurin-25…>` in `~/.gradle/gradle.properties`.
    - packwiz at `PACKWIZ_SHA` in `scripts/pack-check.sh`: `go install github.com/packwiz/packwiz@<sha>`, then move the binary to `~/go/bin` (mise's Go sets `GOBIN` inside its own install). `sync-local-jars.py` calls `packwiz` by name, so `~/go/bin` goes on `PATH` for it.
    - `uv` for the Python checks.
-   Done when each runs.
+   - The 1Password CLI (`op`), for the Libraries' `scripts/upload.py` and its `--dry-run`, which take the site tokens through `op run`. With no account it fails "No accounts configured": the user turns on the desktop app's Settings → Developer → "Integrate with 1Password CLI", or runs `op account add` with their account's sign-in address (Settings → Accounts in the app). Under the app integration `op whoami` reports "not signed in" while `op run` works, so test with `upload.py --dry-run`.
+   Done when each runs, and a Library's `upload.py --dry-run` gets past 1Password.
 
 2. **CurseForge.** When CurseForge's root is not `~/curseforge`, `CURSEFORGE_ROOT` is exported in the user's shell rc. In CurseForge, the user creates a custom profile named `FactoryWorks` on the Minecraft and NeoForge versions `pack.toml` names. It lands in `Instances/FactoryWorks (1)` once the link exists, which `bootstrap.py instance` adopts. Done when the profile exists and CurseForge is quit: it rewrites its instance list while running.
 
