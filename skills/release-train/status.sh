@@ -8,7 +8,7 @@ gw="$HOME/minecraft_mods/groundworks"
 bw="$HOME/minecraft_mods/beltworks"
 ww="$HOME/minecraft_mods/wireworks"
 cw="$HOME/minecraft_mods/craftworks"
-pack="$HOME/curseforge/Instances/FactoryWorks"
+pack="${CURSEFORGE_ROOT:-$HOME/curseforge}/Instances/FactoryWorks"
 
 car() { # <name> <checkout> [artifact]
     local name=$1 dir=$2 artifact=${3:-}

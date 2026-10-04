@@ -13,7 +13,7 @@ The cars run in one order: Groundworks → Beltworks → Wireworks → Craftwork
 | Beltworks | `~/minecraft_mods/beltworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
 | Wireworks | `~/minecraft_mods/wireworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
 | Craftworks | `~/minecraft_mods/craftworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
-| Pack | `~/curseforge/Instances/FactoryWorks` | `scripts/sync-local-jars.py <mod>=<version>` | `CLAUDE.md`, "local jar" |
+| Pack | `$CURSEFORGE_ROOT/Instances/FactoryWorks` (default root `~/curseforge`) | `scripts/sync-local-jars.py <mod>=<version>` | `CLAUDE.md`, "local jar" |
 
 Craftworks is the mod; "Personal Assembler" stays the name of its in-game feature. Its releases are tagged `v<version>` and publish `io.github.5thlayer:craftworks` to `~/.m2`.
 
