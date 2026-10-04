@@ -1,6 +1,6 @@
 {
   "name": "skillworks",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Skills that act across the 5thlayer repos: extracting a Library from the FactoryWorks Pack, the release train for the Libraries and the Pack, setting the Pack up on a fresh machine, launching the game from any of them, and debriefing a session's work.",
   "author": {
     "name": "5thlayer",
