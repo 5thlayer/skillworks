@@ -10,6 +10,7 @@
 #   quicklaunch.sh [--dry-run] [save name]
 #
 # The game is detached and its output goes to $QUICKLAUNCH_LOG (default: a temp file, printed).
+# Gradle runs with --no-daemon, so no idle daemon outlives the game.
 # --dry-run prints what it found and the commands it would run, and launches nothing.
 set -euo pipefail
 
@@ -59,10 +60,22 @@ if [[ $mode == pack ]]; then
         || fail "no player: write PF_PLAYER_NAME=<name> and PF_PLAYER_UUID=<uuid> to $root/player.env, gitignored."
 fi
 
+# Gradle needs a Java: JAVA_HOME's, or the `java` on PATH, which under mise is a shim that fails in a
+# checkout with no Java pinned. Say how to pin one, rather than let gradlew fail on it in the log.
+if [[ -z ${JAVA_HOME:-} ]] && ! java_err="$(java -version 2>&1)"; then
+    want="$(grep -ohE 'JavaLanguageVersion\.of\([0-9]+' build.gradle 2> /dev/null | head -1 | grep -oE '[0-9]+$' || true)"
+    fail "no Java for $root: $(grep -m1 -iE 'error' <<< "$java_err" || head -1 <<< "$java_err")"$'\n'\
+"  pin one in the checkout: (cd $root && mise use java@temurin-${want:-<version>}), or set JAVA_HOME."
+fi
+
+# The Gradle daemon a build starts stays up, idle, for three hours after it, and every checkout of the
+# same Gradle version shares it, so there is none of ours to stop afterwards without stopping another
+# session's: --no-daemon starts none, and the runClient build's JVMs end when the game does.
 if [[ $mode == pack ]]; then
+    install=(./gradlew --no-daemon :factoryworks_core:installToPack -q)
     run=(python3 scripts/launch.py ${save:+--quickPlaySingleplayer "$save"})
 else
-    run=(sh ./gradlew runClient ${save:+"-PquickPlay=$save"})
+    run=(sh ./gradlew --no-daemon runClient ${save:+"-PquickPlay=$save"})
 fi
 
 # A second client of a mod checkout fights the first over run/, and a world opened in both is
@@ -80,20 +93,22 @@ if [[ -n $dry ]]; then
     echo "save: ${save:-none, to the menu}"
     if [[ $mode == pack ]]; then
         echo "player: $name $uuid"
-        echo "run: ./gradlew :factoryworks_core:installToPack -q"
+        echo "run: ${install[*]}"
     fi
     echo "run: $(printf '%q ' "${run[@]}" | sed 's/ $//')"
     if pgrep -f "$running" > /dev/null; then echo "a client is already running: a real run refuses."; fi
     exit 0
 fi
 
-pgrep -f "$running" > /dev/null && fail "a client is already running; close the game first."
+# A client of this checkout may be the user's, mid-game, so it is theirs to close, never ours to kill.
+clients="$(pgrep -f "$running" | paste -sd, - || true)"
+[[ -n $clients ]] && fail "a client is already running (pid $clients); close the game first."
 
 [[ -z $save ]] && echo "quicklaunch: no save found; launching to the menu." >&2
 log="${QUICKLAUNCH_LOG:-$(mktemp -t quicklaunch).log}"
 
 if [[ $mode == pack ]]; then
-    ./gradlew :factoryworks_core:installToPack -q
+    "${install[@]}"
     PF_PLAYER_NAME=$name PF_PLAYER_UUID=$uuid nohup "${run[@]}" > "$log" 2>&1 &
     launcher=$!
     player=
