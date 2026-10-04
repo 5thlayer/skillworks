@@ -10,6 +10,7 @@ claude plugin install skillworks@skillworks
 | Skill | Use it to |
 |---|---|
 | `all-done` | debrief the session's feature: what's done, tested and unclear, and a numbered list to check in game |
+| `fresh-machine` | set up the Pack on a new machine: tools, the CurseForge profile, `scripts/bootstrap.py`, the sync and the checks |
 | `extract-library` | carve a Library out of the Pack, or fork one from upstream, and rename one later |
 | `quicklaunch` | open the game from the checkout you're in: a mod's dev client, or the Pack |
 | `release-train` | release Groundworks, Beltworks, Wireworks or Craftworks and carry the change to the FactoryWorks Pack |
