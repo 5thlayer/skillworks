@@ -9,10 +9,10 @@ The cars run in one order: Groundworks → Beltworks → Wireworks → Craftwork
 
 | Car | Checkout | Releases with | Its rules |
 |---|---|---|---|
-| Groundworks | `~/minecraft_mods/groundworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md`, ADR 0001 |
-| Beltworks | `~/minecraft_mods/beltworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
-| Wireworks | `~/minecraft_mods/wireworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
-| Craftworks | `~/minecraft_mods/craftworks` | `scripts/release.sh --no-upload <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
+| Groundworks | `~/minecraft_mods/groundworks` | `scripts/release.sh <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md`, ADR 0001 |
+| Beltworks | `~/minecraft_mods/beltworks` | `scripts/release.sh <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
+| Wireworks | `~/minecraft_mods/wireworks` | `scripts/release.sh <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
+| Craftworks | `~/minecraft_mods/craftworks` | `scripts/release.sh <version>`, then `scripts/upload.py <version>` at step 4 | `docs/agents/releases.md` |
 | Pack | `$PACK_CHECKOUT`, else the checkout `$CURSEFORGE_ROOT/Instances/FactoryWorks` links to, else `~/MC/factoryworks` | `scripts/sync-local-jars.py <mod>=<version>` | `CLAUDE.md`, "local jar" |
 
 Craftworks is the mod; "Personal Assembler" stays the name of its in-game feature. Its releases are tagged `v<version>` and publish `io.github.5thlayer:craftworks` to `~/.m2`.
@@ -25,14 +25,15 @@ Each checkout has one owner: the session whose working directory it is (`list_se
 
 1. **Status.** Run `${CLAUDE_SKILL_DIR}/status.sh`. Done when you can say, for every car: its `mod_version`, its newest version in `~/.m2`, its unpushed commits and tags, and any uncommitted files; which Groundworks Beltworks and Wireworks nest; and the Pack's pin and `--check` result. Before building on a car that has uncommitted files or unpushed work you didn't make, ask its owner.
 2. **Plan.** Name each car that moves and its next version. Below 1.0, a breaking Groundworks change bumps the minor, and an addition or a fix bumps the patch (Groundworks ADR 0001).
-   - A Groundworks patch needs only the `prefer` in Beltworks' and Wireworks' `build.gradle`.
-   - A Groundworks minor needs the `groundworksRange` def moved in both Beltworks' and Wireworks' `build.gradle`, which feeds `strictly` and `neoforge.mods.toml`'s `versionRange`; the Pack reads the new range from their jars. Both must move together, since the Pack loads one Groundworks for both.
+   - A car's least accepted Groundworks is the one it nests or compiles against, so whenever that rises the lower bound rises with it.
+   - A Groundworks patch moves, in each car that takes it, Beltworks' and Wireworks' `prefer` and the lower bound of the `groundworksRange` def in their `build.gradle`, which feeds `strictly` and `neoforge.mods.toml`'s `versionRange`, and Craftworks' `groundworks_version`.
+   - A Groundworks minor also moves the upper bounds: `groundworksRange` in Beltworks and Wireworks, together, since the Pack loads one Groundworks for both and reads the range from their jars; and Craftworks' cap below the next minor, the `0.6` in its `neoforge.mods.toml` `versionRange`.
    - A Beltworks or Wireworks release that only changes the Groundworks it nests is a patch.
    - A Craftworks release moves itself and the Pack's pin. When its `groundworks_version` rises, the Groundworks it names must first be released and nested by Beltworks and Wireworks, since the Pack's Groundworks comes from their jars.
    Done when the user has approved every car's version.
-3. **Release the Libraries in order.** Each owner releases its own car, only after the car before it is in `~/.m2`, with `scripts/release.sh --no-upload <version>`. Without `--no-upload` the script also uploads the jar to Modrinth and CurseForge, publicly and for good, before the user's word. A Library's gate is its own: `release.sh` runs its build and GameTests against the cars before it.
+3. **Release the Libraries in order.** Each owner releases its own car, only after the car before it is in `~/.m2`, with `scripts/release.sh <version>`, which stops after the tag. Its `--upload` would also upload the jar to Modrinth and CurseForge, publicly and for good, before the user's word, so the train never passes it. A Library's gate is its own: `release.sh` runs its build and GameTests against the cars before it.
    - Groundworks: a line under `## Unreleased` in `CHANGELOG.md`, then the release.
-   - Beltworks: `prefer` (and the range for a minor), a changelog line naming the Groundworks it now nests, then the release. The published jar's `META-INF/jarjar/metadata.json` names that Groundworks.
+   - Beltworks: `prefer` and the range's lower bound (and its upper for a minor), a changelog line naming the Groundworks it now nests, then the release. The published jar's `META-INF/jarjar/metadata.json` names that Groundworks.
    - Wireworks: the same as Beltworks. Its tags are `wireworks-v<version>`.
    - Craftworks: `groundworks_version` if it moves, a line under `## Unreleased` in `CHANGELOG.md`, then the release.
    Done when `status.sh` shows every planned version in `~/.m2`.
