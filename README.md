@@ -16,3 +16,14 @@ claude plugin install skillworks@skillworks
 | `release-train` | release Groundworks, Beltworks, Wireworks or Craftworks and carry the change to the FactoryWorks Pack |
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
+
+## Publishing a change
+
+The marketplace is this repo's `main` on GitHub, so a commit reaches sessions only after three steps: push `main`, update the local marketplace clone, and update the installed plugin. `scripts/publish.sh` does all three:
+
+```bash
+scripts/publish.sh            # where the checkout, origin/main and the installed plugin stand
+scripts/publish.sh --publish  # check, push main, update the marketplace and the plugin
+```
+
+Every push must raise the version in `.claude-plugin/plugin.json` above origin's, because the plugin is installed by version. `--publish` refuses an unbumped push, uncommitted changes, any branch other than `main`, and a failing `claude plugin validate` or `skills/*/test.sh`. Sessions load the new version when they restart. `scripts/test.sh` runs it against a fixture origin with a fake `claude`.
