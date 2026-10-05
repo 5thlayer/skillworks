@@ -23,6 +23,8 @@ One session runs a train: the **conductor**. The user names it, or it is the ses
 
 A session whose change must reach another car commits it, tells the conductor what is ready and in which commit, and then hands the checkout over: no commits and no uncommitted edits there until the conductor says the car is done. Work that can't wait goes on a branch in a worktree of its own. `release.sh` releases from HEAD and refuses a dirty tree, so the conductor releases only from a clean checkout whose HEAD is the ready commit, or a release commit after it, and asks the session otherwise.
 
+Those sessions don't load this skill, so every message the conductor sends them says it is the conductor, names it as the session to reply to, and asks them to send their questions and objections there by SendMessage, keeping their own user for decisions about their own work. A question that reaches the user instead is answered by the user or passed on to the conductor.
+
 The conductor keeps each frozen session told: the plan once you approve it, then each car as it is released, pushed and uploaded. If the conductor's session ends mid-train (`list_sessions` no longer shows it), the frozen sessions ask the user, who names a new conductor. That conductor starts again from step 1: `release-status` shows what is already in `~/.m2`, tagged, pushed and pinned, and the train goes on from the first step not done. A version already in `~/.m2` or on a site is never released again; a fix to it is the next patch.
 
 ## Steps
