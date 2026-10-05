@@ -5,7 +5,8 @@
 # Each mod's shared files against libworks' template, 5thlayer/libworks on GitHub: the tooling, docs and
 # config every Library starts from, with the mod's names read as the template's example ones (examplelib,
 # ExampleLib, Example Library), whether the mod renamed them or not. Per-mod files (build, changelog, glossary, README, ADRs) are left out.
-# The Pack isn't made from the template; only its release.sh is compared, as the one it copies.
+# The Pack isn't made from the template; only its release tooling is compared, as FactoryWorks Core's
+# release and upload copy the template's.
 #
 #   drift.sh [--release-tooling] [mod checkout...]
 #
@@ -27,8 +28,9 @@ else
         || { echo "drift: could not clone 5thlayer/libworks" >&2; exit 2; }
 fi
 
+release_tooling=(scripts/release.sh scripts/upload.py scripts/tests/standin.py scripts/tests/test_upload.py publish/upload.env)
 if [[ -n $release_only ]]; then
-    files=(scripts/release.sh scripts/upload.py scripts/tests/standin.py scripts/tests/test_upload.py publish/upload.env)
+    files=("${release_tooling[@]}")
 else
     mapfile -t files < <(git -C "$template" ls-files | grep -vE '^(src/|docs/adr/|CHANGELOG\.md|CONTEXT\.md|README\.md|CLAUDE\.md|build\.gradle|gradle\.properties|settings\.gradle|REUSE\.toml|scripts/fill-template\.sh)')
 fi
@@ -45,7 +47,7 @@ property() { sed -n "s/^$2 *= *//p" "$1/gradle.properties" 2> /dev/null | head -
 for dir in "${checkouts[@]}"; do
     [[ -d $dir ]] || continue
     if [[ -f $dir/data/pack/local-jars.json ]]; then
-        compare=(scripts/release.sh)
+        compare=("${release_tooling[@]}")
     else
         compare=("${files[@]}")
     fi
