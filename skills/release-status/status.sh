@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 5thlayer
+# SPDX-License-Identifier: MIT
+#
 # The release train's state: each car's version, what ~/.m2 holds, what isn't pushed, the Groundworks
-# Beltworks and Wireworks nest, and whether the Pack's mods/ matches its pins. It changes nothing but fetches.
+# each car nests or requires, whether the Pack's mods/ matches its pins and loads a Groundworks every
+# jar accepts, the same for the newest cars in ~/.m2, and each release.sh against libworks' template.
+# It changes nothing but fetches.
 set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
 
 m2="${MAVEN_REPO_LOCAL:-$HOME/.m2/repository}/io/github/5thlayer"
 gw="$HOME/minecraft_mods/groundworks"
@@ -56,6 +62,29 @@ cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/
 car Craftworks "$cw" "${cw_artifact:-craftworks}"
 echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/gradle.properties"), unnested"
 
+# A release.sh that drifts from the template misses its fixes, as the Pack's kept --no-upload's.
+echo "== release.sh against libworks' template, beyond comments and the tag"
+norm() { grep -vE '^[[:space:]]*#|^[[:space:]]*$|^tag=' "$1"; }
+if template="$(curl -fsSL --max-time 10 https://raw.githubusercontent.com/5thlayer/libworks/main/scripts/release.sh)"; then
+    for dir in "$gw" "$bw" "$ww" "$cw" "${pack:-}"; do
+        [[ -n $dir && -f $dir/scripts/release.sh ]] || continue
+        n=$(diff <(norm /dev/stdin <<< "$template") <(norm "$dir/scripts/release.sh") | grep -c '^[<>]')
+        echo "  $(basename "$dir"): $([[ $n == 0 ]] && echo same || echo "$n lines differ")"
+    done
+else
+    echo "  (could not fetch the template)"
+fi
+
+# The Groundworks the Pack would load were it to take the newest Groundworks, Beltworks, Wireworks and
+# Craftworks in ~/.m2: a FAIL is a car to release, or a pin that can't move alone.
+newest() { # <artifact>: its newest jar in ~/.m2
+    local v; v=$(ls "$m2/$1" 2> /dev/null | grep -E '^[0-9]' | sort -V | tail -1)
+    [[ -n $v ]] && echo "$m2/$1/$v/$1-$v.jar"
+}
+echo "== Groundworks, were the Pack to take the newest cars in ~/.m2"
+jars=("$(newest groundworks)" "$(newest beltworks)" "$(newest wireworks)" "$(newest "${cw_artifact:-craftworks}")")
+python3 "$here/groundworks.py" $(for j in "${jars[@]}"; do [[ -f $j ]] && echo "$j"; done)
+
 if [[ -z $pack ]]; then
     echo "== Pack  not found: set PACK_CHECKOUT to its checkout"
     exit 0
@@ -64,3 +93,4 @@ car Pack "$pack"
 echo "  pin: $(python3 -c 'import json,sys; print(", ".join(f"{r["mod"]} {r["version"]}" for r in json.load(open(sys.argv[1]))["jars"]))' \
     "$pack/data/pack/local-jars.json")"
 python3 "$pack/scripts/sync-local-jars.py" --check 2>&1 | sed 's/^/  --check: /'
+python3 "$here/groundworks.py" $(ls "$pack"/mods/*.jar | grep -v -- '-sources\.jar$')

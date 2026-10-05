@@ -13,4 +13,4 @@ What a rename touches:
 - **The `release-train` car.** Every place `SKILL.md` step 9 adds it.
 - **Glossary links.** This repo's `CONTEXT.md`, the Pack's `CONTEXT.md`, `CLAUDE.md` and ADRs that name the Library (write a new ADR or a dated note rather than editing an accepted one's decision), and the READMEs of Libraries that mention it.
 
-Done when `git grep -i <old>` in each repo finds only history (changelogs, ADRs, NOTICE) and `release-train`'s `status.sh` shows the renamed car with the Pack's `--check` passing.
+Done when `git grep -i <old>` in each repo finds only history (changelogs, ADRs, NOTICE) and `release-status`' `status.sh` shows the renamed car with the Pack's `--check` passing.

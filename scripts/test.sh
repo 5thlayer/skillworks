@@ -59,6 +59,7 @@ check "reports uncommitted changes" 1 "uncommitted changes in the checkout"
 check "refuses to publish uncommitted changes" 1 "uncommitted changes; commit them first." --publish
 commit change
 check "reports an unpushed commit" 1 "1 commit(s) not pushed"
+check "lists the unpushed commit" 1 " change"
 check "reports a push without a version bump" 1 "version 0.1.0 is not above origin's 0.1.0"
 check "refuses to push without a version bump" 1 "bump it" --publish
 [[ $(git -C "$tmp/origin.git" rev-parse main) != $(git -C "$work" rev-parse HEAD) ]] \

@@ -53,7 +53,8 @@ todo=()
 [[ -n $(git status --porcelain) ]] && todo+=("uncommitted changes in the checkout")
 (( behind > 0 )) && todo+=("the checkout is $behind behind origin/main; pull first")
 if (( ahead > 0 )); then
-    todo+=("$ahead commit(s) not pushed")
+    todo+=("$ahead commit(s) not pushed:")
+    while read -r line; do todo+=("  $line"); done < <(git log --reverse --format='%h %ad %s' --date=format:'%m-%d %H:%M' origin/main..HEAD)
     newer "$(version_at HEAD)" "$(version_at origin/main)" \
         || todo+=("plugin.json's version $(version_at HEAD) is not above origin's $(version_at origin/main); bump it")
 fi
@@ -71,6 +72,8 @@ fi
 if (( ahead > 0 )); then
     newer "$(version_at HEAD)" "$(version_at origin/main)" \
         || fail "plugin.json's version $(version_at HEAD) is not above origin's $(version_at origin/main); bump it in its own commit or the last one."
+    echo "pushing:"
+    git log --reverse --format='  %h %ad %s' --date=format:'%m-%d %H:%M' origin/main..HEAD
     claude plugin validate . > /dev/null || fail "claude plugin validate . fails."
     for t in skills/*/test.sh; do
         [[ -e $t ]] || continue

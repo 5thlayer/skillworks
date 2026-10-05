@@ -13,6 +13,7 @@ claude plugin install skillworks@skillworks
 | `fresh-machine` | set up the Pack on a new machine: tools, the CurseForge profile, `scripts/bootstrap.py`, the sync and the checks |
 | `extract-library` | carve a Library out of the Pack, or fork one from upstream, and rename one later |
 | `quicklaunch` | open the game from the checkout you're in: a mod's dev client, or the Pack |
+| `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the Pack loads, and `release.sh` drift |
 | `release-train` | release Groundworks, Beltworks, Wireworks or Craftworks and carry the change to the FactoryWorks Pack |
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
