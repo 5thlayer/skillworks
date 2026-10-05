@@ -20,11 +20,12 @@ Intended:
 - **Wireworks, Craftworks, Beltworks**: a CI step that builds the tagged Groundworks into the runner's `~/.m2`. A game-test platform sized for their tests.
 - **`docs/agents/releases.md`** everywhere: each mod's own changelog sections and history.
 - **The Pack**, for FactoryWorks Core, a subproject of the Pack's build:
-  - `release.sh` and `upload.py`: the tag `core-v<version>`, the changelog `publish/core/changelog.md`, the artifact named by `mod_id` since Core has no `archives_name`, Gradle tasks on `:factoryworks_core` with its unit tests in place of GameTests, and a release commit that names Core.
+  - No SPDX headers: the Pack marks its files only in `REUSE.toml` (its ADR-0102), which keeps these four MIT, as the template is.
+  - `release.sh` and `upload.py`: the tag `core-v<version>`, the changelog `publish/core/changelog.md`, the artifact named by `mod_id` since Core has no `archives_name`, Gradle tasks on `:factoryworks_core` with its unit tests in place of GameTests, a release commit that names Core, `mod_version=` written without spaces as Core's `gradle.properties` is, and header comments that name Core with no `docs/agents/releases.md`, which the Pack lacks.
   - `upload.py`: Core's projects and required dependencies (Oritech, Beltworks) are constants in the script, not `gradle.properties` properties, so neither script checks `gradle.properties` for a project. Its licensing list is LGPL and CC BY with the NOTICE (ADR-0102).
   - `scripts/tests/`: the template's tests, differing only where `upload.py` does.
-  - `upload.env`: Core in its comment for "every Library".
-  - Everything else matches the template's: the argument handling, the upload default, the release type and `upload_release_type`, the token handling and `op run`, the failure messages, and the SPDX headers.
+  - `upload.env`: Core in its comment, sharing Beltworks' items with every Library.
+  - Everything else matches the template's: the argument handling, the upload default, the release type and `upload_release_type`, the token handling and `op run`, and the failure messages.
 
 ## Carry a fix
 
