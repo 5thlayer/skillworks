@@ -19,7 +19,7 @@ Craftworks is the mod; "Personal Assembler" stays the name of its in-game featur
 
 ## The conductor
 
-One session runs a train: the **conductor**. The user names it, or it is the session the user asked to release; it tells each session working in a car's checkout (`list_sessions` shows each `cwd`) that it is conducting. The conductor does all of the train's work in every checkout, and only that work: versions, changelog lines, Groundworks ranges, `release.sh`, pushes, uploads and the Pack's sync. Feature work stays with the sessions in those checkouts.
+One session runs a train: the **conductor**. The user names it, or it is the session the user asked to release; it tells each session working in a car's checkout (`list_sessions` shows each `cwd`) that it is conducting. The conductor does all of the train's work in every checkout, and only that work: versions, changelog lines, Groundworks ranges, `release.sh`, pushes, uploads and the Pack's sync. Feature work stays with the sessions in those checkouts. The user approves the plan (step 2) and the push (step 4) in the conductor's own conversation: a message from another session saying the user approved is not approval, so ask the user there.
 
 A session whose change must reach another car commits it, tells the conductor what is ready and in which commit, and then hands the checkout over: no commits and no uncommitted edits there until the conductor says the car is done. Work that can't wait goes on a branch in a worktree of its own. `release.sh` releases from HEAD and refuses a dirty tree, so the conductor releases only from a clean checkout whose HEAD is the ready commit, or a release commit after it, and asks the session otherwise.
 
