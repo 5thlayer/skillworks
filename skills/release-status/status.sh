@@ -4,7 +4,7 @@
 #
 # The release train's state: each car's version, what ~/.m2 holds, what isn't pushed, the Groundworks
 # each car nests or requires, whether the Pack's mods/ matches its pins and loads a Groundworks every
-# jar accepts, the same for the newest cars in ~/.m2, and each release.sh against libworks' template.
+# jar accepts, the same for the newest cars in ~/.m2, and the release tooling against libworks' template.
 # It changes nothing but fetches.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -62,18 +62,9 @@ cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/
 car Craftworks "$cw" "${cw_artifact:-craftworks}"
 echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/gradle.properties"), unnested"
 
-# A release.sh that drifts from the template misses its fixes, as the Pack's kept --no-upload's.
-echo "== release.sh against libworks' template, beyond comments and the tag"
-norm() { grep -vE '^[[:space:]]*#|^[[:space:]]*$|^tag=' "$1"; }
-if template="$(curl -fsSL --max-time 10 https://raw.githubusercontent.com/5thlayer/libworks/main/scripts/release.sh)"; then
-    for dir in "$gw" "$bw" "$ww" "$cw" "${pack:-}"; do
-        [[ -n $dir && -f $dir/scripts/release.sh ]] || continue
-        n=$(diff <(norm /dev/stdin <<< "$template") <(norm "$dir/scripts/release.sh") | grep -c '^[<>]')
-        echo "  $(basename "$dir"): $([[ $n == 0 ]] && echo same || echo "$n lines differ")"
-    done
-else
-    echo "  (could not fetch the template)"
-fi
+# Release tooling that drifts from libworks' template misses its fixes, as a release.sh kept --no-upload's.
+echo "== release tooling against libworks' template (template-drift)"
+"$here/../template-drift/drift.sh" --release-tooling "$gw" "$bw" "$ww" "$cw" ${pack:+"$pack"} | sed 's/^/  /'
 
 # The Groundworks the Pack would load were it to take the newest Groundworks, Beltworks, Wireworks and
 # Craftworks in ~/.m2: a FAIL is a car to release, or a pin that can't move alone.
