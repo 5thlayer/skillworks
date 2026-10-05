@@ -23,4 +23,4 @@ Intended:
 
 ## Carry a fix
 
-A fix to shared tooling or docs lands in the template first, then in each mod that has the file, as its own commit there, with the same wording; a mod's name replaces the example one where the file names it. Then `drift.sh` shows each mod back to `same` or its intended difference. The pushes need the user's word; in a release train they ride with the train's push, and the conductor makes the commits (see `release-train`).
+A fix to shared tooling or docs lands in the template first, then in each mod that has the file, as its own commit there, with the same wording; a mod's name replaces the example one where the file names it. Then `drift.sh` shows each mod back to `same` or its intended difference. When other sessions work in those checkouts, the change is conducted under the `conductor` skill, which covers handing the checkouts over, the user's approval and pushing exact commits. A fix changes no jar, so it needs no release: its commits are pushed as they are, or ride under the next release commit.
