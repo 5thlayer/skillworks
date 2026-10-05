@@ -42,7 +42,7 @@ fi
 
 # The Pack's saves know one player; a fresh name or UUID makes FTB Quests complete its opening chapter
 # and grant the starting kit again. So the player is the user's, from the environment or the Pack's
-# gitignored player.env, and never a guess.
+# player.env, and never a guess. A name and UUID are public on Minecraft's own pages, so the Pack commits it.
 from_env() { # <key>: its value in player.env, as a shell would read a plain KEY=value line
     tr -d '\r' < player.env \
         | sed -nE "s/^[[:space:]]*(export[[:space:]]+)?$1[[:space:]]*=[[:space:]]*//p" | head -1 \
@@ -50,14 +50,12 @@ from_env() { # <key>: its value in player.env, as a shell would read a plain KEY
 }
 if [[ $mode == pack ]]; then
     if [[ -f player.env ]]; then
-        git check-ignore -q player.env \
-            || fail "$root/player.env is not gitignored; add it to .gitignore before it holds your player."
         name="${PF_PLAYER_NAME:-$(from_env PF_PLAYER_NAME)}" uuid="${PF_PLAYER_UUID:-$(from_env PF_PLAYER_UUID)}"
     else
         name="${PF_PLAYER_NAME:-}" uuid="${PF_PLAYER_UUID:-}"
     fi
     [[ -n $name && -n $uuid ]] \
-        || fail "no player: write PF_PLAYER_NAME=<name> and PF_PLAYER_UUID=<uuid> to $root/player.env, gitignored."
+        || fail "no player: write PF_PLAYER_NAME=<name> and PF_PLAYER_UUID=<uuid> to $root/player.env."
 fi
 
 # Gradle needs a Java: JAVA_HOME's, or the `java` on PATH, which under mise is a shim that fails in a

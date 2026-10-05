@@ -67,8 +67,6 @@ git -C "$pack" init -q
 touch "$pack/gradlew" "$pack/scripts/launch.py" "$pack/data/pack/local-jars.json" "$pack/saves/World/level.dat"
 check "pack: refuses without a player" 1 "player.env" "$pack"
 printf 'PF_PLAYER_NAME=someone\nPF_PLAYER_UUID=00000000-0000-0000-0000-000000000001\n' > "$pack/player.env"
-check "pack: refuses a player.env git would commit" 1 "not gitignored" "$pack"
-echo player.env > "$pack/.gitignore"
 check "pack: takes the Pack" 0 "mode: pack" "$pack"
 ENV="PATH=$tmp/nojava/bin:$PATH" check "pack: refuses with no Java" 1 "mise use java@temurin-<version>)" "$pack"
 check "pack: reads the player from player.env" 0 "player: someone 00000000-0000-0000-0000-000000000001"$'\n' "$pack"
