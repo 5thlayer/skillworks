@@ -5,7 +5,7 @@
 # Launch the game for the checkout the working directory is in, into its most recent save, unless a
 # client is already running:
 #   - a mod repo (a Gradle build whose client run takes -PquickPlay) opens its dev client;
-#   - the Pack (scripts/launch.py beside data/pack/local-jars.json) installs its jar and opens the pack.
+#   - the Pack (scripts/launch.py beside data/pack/local-jars.json) opens the pack as its mods/ stands.
 #
 #   quicklaunch.sh [--dry-run] [save name]
 #
@@ -59,8 +59,9 @@ if [[ $mode == pack ]]; then
 fi
 
 # Gradle needs a Java: JAVA_HOME's, or the `java` on PATH, which under mise is a shim that fails in a
-# checkout with no Java pinned. Say how to pin one, rather than let gradlew fail on it in the log.
-if [[ -z ${JAVA_HOME:-} ]] && ! java_err="$(java -version 2>&1)"; then
+# checkout with no Java pinned. Say how to pin one, rather than let gradlew fail on it in the log. The
+# Pack builds nothing, and its game runs on CurseForge's bundled Java.
+if [[ $mode == mod && -z ${JAVA_HOME:-} ]] && ! java_err="$(java -version 2>&1)"; then
     want="$(grep -ohE 'JavaLanguageVersion\.of\([0-9]+' build.gradle 2> /dev/null | head -1 | grep -oE '[0-9]+$' || true)"
     fail "no Java for $root: $(grep -m1 -iE 'error' <<< "$java_err" || head -1 <<< "$java_err")"$'\n'\
 "  pin one in the checkout: (cd $root && mise use java@temurin-${want:-<version>}), or set JAVA_HOME."
@@ -70,7 +71,6 @@ fi
 # same Gradle version shares it, so there is none of ours to stop afterwards without stopping another
 # session's: --no-daemon starts none, and the runClient build's JVMs end when the game does.
 if [[ $mode == pack ]]; then
-    install=(./gradlew --no-daemon :factoryworks_core:installToPack -q)
     run=(python3 scripts/launch.py ${save:+--quickPlaySingleplayer "$save"})
 else
     run=(sh ./gradlew --no-daemon runClient ${save:+"-PquickPlay=$save"})
@@ -91,7 +91,6 @@ if [[ -n $dry ]]; then
     echo "save: ${save:-none, to the menu}"
     if [[ $mode == pack ]]; then
         echo "player: $name $uuid"
-        echo "run: ${install[*]}"
     fi
     echo "run: $(printf '%q ' "${run[@]}" | sed 's/ $//')"
     if pgrep -f "$running" > /dev/null; then echo "a client is already running: a real run refuses."; fi
@@ -106,7 +105,6 @@ clients="$(pgrep -f "$running" | paste -sd, - || true)"
 log="${QUICKLAUNCH_LOG:-$(mktemp -t quicklaunch).log}"
 
 if [[ $mode == pack ]]; then
-    "${install[@]}"
     PF_PLAYER_NAME=$name PF_PLAYER_UUID=$uuid nohup "${run[@]}" > "$log" 2>&1 &
     launcher=$!
     player=
@@ -118,7 +116,7 @@ if [[ $mode == pack ]]; then
     done
     [[ -n $player ]] || fail "no 'launching as' line after 30s; log: $log"
     [[ $player == "launching as $name" ]] || fail "expected $name, got '${player#launching as }'"
-    echo "jar installed; ${save:+opening \"$save\" }$player; log: $log"
+    echo "${save:+opening \"$save\" }$player; log: $log"
 else
     nohup "${run[@]}" > "$log" 2>&1 &
     gradle=$!

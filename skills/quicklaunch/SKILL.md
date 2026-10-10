@@ -1,6 +1,6 @@
 ---
 name: quicklaunch
-description: Launch Minecraft for the checkout you're in, straight into its most recent save — a mod repo (libworks, Groundworks, Beltworks, Craftworks) opens its dev client, the FactoryWorks Pack installs its jar and opens the pack. Use only when the user asks for it — "quicklaunch", "quick launch", "launch the game", "open the client", "install the jar and launch" — never on your own initiative to check a change, since it opens a window on the user's screen.
+description: Launch Minecraft for the checkout you're in, straight into its most recent save — a mod repo (libworks, Groundworks, Beltworks, Craftworks) opens its dev client, the FactoryWorks Pack opens the pack. Use only when the user asks for it — "quicklaunch", "quick launch", "launch the game", "open the client" — never on your own initiative to check a change, since it opens a window on the user's screen.
 ---
 
 # Quick launch
@@ -16,10 +16,10 @@ It opens the most recent save unless given one, and a new game's menu when there
 The script works out which checkout it is in:
 
 - **A mod repo**, a Gradle build whose client run takes `-PquickPlay=<save>` (libworks' `build.gradle` has it), runs `./gradlew runClient` detached and waits for the client's sound engine. Its saves are in `run/saves`.
-- **The Pack**, where `scripts/launch.py` sits beside `data/pack/local-jars.json`, runs `:factoryworks_core:installToPack`, then `scripts/launch.py` detached, and checks the log's `launching as` line. Its saves are in `saves/`. It launches as the player in `PF_PLAYER_NAME` and `PF_PLAYER_UUID`, or else in the Pack's `player.env` (those two lines), which the Pack commits: a name and UUID are public. Without a player it refuses, since a fresh player makes the save's opening quests and starting kit fire again. If it refuses for that, ask the user for their name and UUID rather than guessing.
+- **The Pack**, where `scripts/launch.py` sits beside `data/pack/local-jars.json`, runs `scripts/launch.py` detached and checks the log's `launching as` line. Its saves are in `saves/`. It builds nothing, since the Pack has no build since its ADR-0128 took Core out, and the game runs on CurseForge's bundled Java. It launches as the player in `PF_PLAYER_NAME` and `PF_PLAYER_UUID`, or else in the Pack's `player.env` (those two lines), which the Pack commits: a name and UUID are public. Without a player it refuses, since a fresh player makes the save's opening quests and starting kit fire again. If it refuses for that, ask the user for their name and UUID rather than guessing.
 
 Gradle runs with `--no-daemon`, so the game leaves no idle daemon behind once it closes. Never stop daemons yourself, with `./gradlew --stop` or otherwise: every checkout of a Gradle version shares them, and another session may be building with one.
 
-It refuses when a client of that checkout is already running, when the named save isn't there, when the checkout has no Java (JAVA_HOME unset and mise has none pinned there; it prints the `mise use` line that pins one, which is the user's to run), and in any other repo. Report its last line in one line: what launched and which save. If it exits non-zero, report its error and don't retry: a running client is the user's to close, never yours to kill.
+It refuses when a client of that checkout is already running, when the named save isn't there, when a mod checkout has no Java (JAVA_HOME unset and mise has none pinned there; it prints the `mise use` line that pins one, which is the user's to run), and in any other repo. Report its last line in one line: what launched and which save. If it exits non-zero, report its error and don't retry: a running client is the user's to close, never yours to kill.
 
 `${CLAUDE_SKILL_DIR}/quicklaunch.sh --dry-run` prints what it would launch and launches nothing. `${CLAUDE_SKILL_DIR}/test.sh` checks its choices on fixture repos.

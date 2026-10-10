@@ -64,13 +64,13 @@ ENV="PATH=$tmp/nojava/bin:$PATH JAVA_HOME=$tmp/java" check "mod: takes JAVA_HOME
 pack="$tmp/pack"
 mkdir -p "$pack/scripts" "$pack/data/pack" "$pack/saves/World"
 git -C "$pack" init -q
-touch "$pack/gradlew" "$pack/scripts/launch.py" "$pack/data/pack/local-jars.json" "$pack/saves/World/level.dat"
+touch "$pack/scripts/launch.py" "$pack/data/pack/local-jars.json" "$pack/saves/World/level.dat"
 check "pack: refuses without a player" 1 "player.env" "$pack"
 printf 'PF_PLAYER_NAME=someone\nPF_PLAYER_UUID=00000000-0000-0000-0000-000000000001\n' > "$pack/player.env"
 check "pack: takes the Pack" 0 "mode: pack" "$pack"
-ENV="PATH=$tmp/nojava/bin:$PATH" check "pack: refuses with no Java" 1 "mise use java@temurin-<version>)" "$pack"
+ENV="PATH=$tmp/nojava/bin:$PATH" check "pack: needs no Java, since the game runs on CurseForge's" 0 "mode: pack" "$pack"
 check "pack: reads the player from player.env" 0 "player: someone 00000000-0000-0000-0000-000000000001"$'\n' "$pack"
-check "pack: installs the jar first, with no daemon left after" 0 "run: ./gradlew --no-daemon :factoryworks_core:installToPack -q" "$pack"
+check "pack: builds nothing, since Core left the Pack (its ADR-0128)" 0 "player: someone 00000000-0000-0000-0000-000000000001"$'\nrun: python3 scripts/launch.py' "$pack"
 check "pack: opens the most recent save" 0 "run: python3 scripts/launch.py --quickPlaySingleplayer World"$'\n' "$pack"
 ENV="PF_PLAYER_NAME=other" check "pack: the environment overrides player.env, one variable at a time" 0 \
     "player: other 00000000-0000-0000-0000-000000000001"$'\n' "$pack"
