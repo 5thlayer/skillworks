@@ -23,6 +23,8 @@ echo 'standin' > "$lib/scripts/tests/standin.py"
 echo 'TOKEN=op://x' > "$lib/publish/upload.env"
 echo 'changelog' > "$lib/CHANGELOG.md"
 echo 'tools' > "$lib/mise.toml"
+echo 'Groundworks nests in Beltworks.' > "$lib/guide.md"
+echo 'the template glossary' > "$lib/GLOSSARY.md"
 git -C "$lib" add -A
 
 mod() { # <dir> <archives_name> <mod_name> <tag prefix> <class>
@@ -36,9 +38,12 @@ mod() { # <dir> <archives_name> <mod_name> <tag prefix> <class>
     echo 'TOKEN=op://x' > "$d/publish/upload.env"
     echo 'its own changelog' > "$d/CHANGELOG.md"
     echo 'tools' > "$d/mise.toml"
+    echo 'Groundworks nests in Beltworks.' > "$d/guide.md"
+    echo 'its own glossary' > "$d/GLOSSARY.md"
 }
 mod renamed pipeworks Pipeworks pipeworks- Pipeworks
 mod kept examplelib "Example Library" "" ExampleLib
+mod named groundworks Groundworks "" Groundworks
 mod drifted wireworks Wireworks wireworks- Wireworks
 echo 'upload, an old fork' > "$tmp/drifted/scripts/upload.py"
 rm "$tmp/drifted/publish/upload.env"
@@ -60,6 +65,8 @@ check() { # <name> <expected substring> [args...]
 
 check "a mod that renamed the example names is the same" $'== renamed\n  same' "$tmp/renamed"
 check "a mod that kept them is the same" $'== kept\n  same' "$tmp/kept"
+check "a mod the template names is the same" $'== named\n  same' "$tmp/named"
+check "leaves the glossary out" $'== kept\n  same' "$tmp/kept"
 check "reports a file that differs" "scripts/upload.py: 2 lines differ" "$tmp/drifted"
 check "reports a missing file" "missing publish/upload.env" "$tmp/drifted"
 check "leaves per-mod files out" $'== renamed\n  same' "$tmp/renamed"

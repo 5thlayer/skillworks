@@ -5,13 +5,14 @@
 # Each mod's shared files against libworks' template, 5thlayer/libworks on GitHub: the tooling, docs and
 # config every Library starts from, with the mod's names read as the template's example ones (examplelib,
 # ExampleLib, Example Library), whether the mod renamed them or not. Per-mod files (build, changelog, glossary, README, ADRs) are left out.
+# The template's own text is read the same way, since it may name a mod: Groundworks, as an example.
 # The Pack isn't made from the template; only its release tooling is compared, as FactoryWorks Core's
 # release and upload copy the template's.
 #
 #   drift.sh [--release-tooling] [mod checkout...]
 #
 # --release-tooling compares only what a release runs: release.sh, upload.py, its tests, upload.env.
-# With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks and the Pack.
+# With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Voidworks and the Pack.
 # It prints, per checkout, "same" or each file that differs (with its line count) or is missing.
 # LIBWORKS points it at a local template checkout instead of a fresh clone.
 set -uo pipefail
@@ -32,12 +33,12 @@ release_tooling=(scripts/release.sh scripts/upload.py scripts/tests/standin.py s
 if [[ -n $release_only ]]; then
     files=("${release_tooling[@]}")
 else
-    mapfile -t files < <(git -C "$template" ls-files | grep -vE '^(src/|docs/adr/|CHANGELOG\.md|CONTEXT\.md|README\.md|CLAUDE\.md|build\.gradle|gradle\.properties|settings\.gradle|REUSE\.toml|scripts/fill-template\.sh)')
+    mapfile -t files < <(git -C "$template" ls-files | grep -vE '^(src/|docs/adr/|CHANGELOG\.md|CONTEXT\.md|GLOSSARY\.md|README\.md|CLAUDE\.md|build\.gradle|gradle\.properties|settings\.gradle|REUSE\.toml|scripts/fill-template\.sh)')
 fi
 
 checkouts=("$@")
 if (( ${#checkouts[@]} == 0 )); then
-    for m in groundworks beltworks wireworks craftworks pipeworks; do checkouts+=("$HOME/minecraft_mods/$m"); done
+    for m in groundworks beltworks wireworks craftworks pipeworks voidworks; do checkouts+=("$HOME/minecraft_mods/$m"); done
     for p in "${PACK_CHECKOUT:-}" "${CURSEFORGE_ROOT:-$HOME/curseforge}/Instances/FactoryWorks" "$HOME/MC/factoryworks"; do
         [[ -n $p && -f $p/data/pack/local-jars.json ]] && { checkouts+=("$p"); break; }
     done
@@ -59,7 +60,9 @@ for dir in "${checkouts[@]}"; do
         if [[ ! -f $dir/$f ]]; then report+=("missing $f"); continue; fi
         if [[ $f == *.jar ]]; then cmp -s "$template/$f" "$dir/$f" || report+=("$f differs"); continue; fi
         # The display name first, since it is often the class name too; and each repo's tag prefix is its own.
-        n=$(diff -I '^tag=' "$template/$f" <(sed "${name:+s/$name \([0-9]\)/Example Library \1/g; s/= $name\$/= Example Library/;} ${artifact:+s/$artifact/examplelib/g; s/$class/ExampleLib/g}" "$dir/$f") | grep -c '^[<>]')
+        # Both sides read the mod's names as the example ones, so a mod the template names matches itself.
+        as_example=("${name:+s/$name \([0-9]\)/Example Library \1/g; s/= $name\$/= Example Library/;} ${artifact:+s/$artifact/examplelib/g; s/$class/ExampleLib/g}")
+        n=$(diff -I '^tag=' <(sed "${as_example[0]}" "$template/$f") <(sed "${as_example[0]}" "$dir/$f") | grep -c '^[<>]')
         (( n > 0 )) && report+=("$f: $n lines differ")
     done
     echo "== $(basename "$dir")"

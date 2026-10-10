@@ -1,6 +1,6 @@
 ---
 name: template-drift
-description: Compare the 5thlayer mods (Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks) and the Pack's release tooling for FactoryWorks Core with libworks' template, and carry a template fix out to them. Use when the template changes, when a fix lands in one mod's shared tooling or docs, when asked how far the mods have drifted from libworks, or when release-status reports release tooling that differs.
+description: Compare the 5thlayer mods (Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Voidworks) and the Pack's release tooling for FactoryWorks Core with libworks' template, and carry a template fix out to them. Use when the template changes, when a fix lands in one mod's shared tooling or docs, when asked how far the mods have drifted from libworks, or when release-status reports release tooling that differs.
 ---
 
 # Template drift
@@ -17,6 +17,7 @@ Intended:
 
 - **Beltworks**: `upload.py` and its tests check the NOTICE crediting Rearth and malcolmriley, the CC BY text, and the nested Groundworks' licence. `release.sh` refuses a build under `-PsiblingBuilds`. `upload.env` names the 1Password items without the template's comment, as their owner. Its CI, issue tracker, labels, `LICENSE` and game-test platform are its own, from Upstream and the Pack. It has no `publishing.md`, since its projects predate the doc.
 - **Craftworks**: "Mod" for "Library" in `release.sh`'s and `upload.env`'s comments. Its own CI step that builds Groundworks, its glossary and tracker docs. No `publishing.md`, like Beltworks.
+- **Pipeworks**: `publishing.md` names its CurseForge project "5thlayer Pipeworks", since another mod holds Pipeworks there, and its icon and cover in `publish/`.
 - **Wireworks, Craftworks, Beltworks**: a CI step that builds the tagged Groundworks into the runner's `~/.m2`. A game-test platform sized for their tests.
 - **`docs/agents/releases.md`** everywhere: each mod's own changelog sections and history.
 - **The Pack**, for FactoryWorks Core, a subproject of the Pack's build:
