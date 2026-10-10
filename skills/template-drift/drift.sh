@@ -6,13 +6,11 @@
 # config every Library starts from, with the mod's names read as the template's example ones (examplelib,
 # ExampleLib, Example Library), whether the mod renamed them or not. Per-mod files (build, changelog, glossary, README, ADRs) are left out.
 # The template's own text is read the same way, since it may name a mod: Groundworks, as an example.
-# The Pack isn't made from the template; only its release tooling is compared, as FactoryWorks Core's
-# release and upload copy the template's.
 #
 #   drift.sh [--release-tooling] [mod checkout...]
 #
 # --release-tooling compares only what a release runs: release.sh, upload.py, its tests, upload.env.
-# With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Voidworks and the Pack.
+# With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks and Voidworks.
 # It prints, per checkout, "same" or each file that differs (with its line count) or is missing.
 # LIBWORKS points it at a local template checkout instead of a fresh clone.
 set -uo pipefail
@@ -39,23 +37,15 @@ fi
 checkouts=("$@")
 if (( ${#checkouts[@]} == 0 )); then
     for m in groundworks beltworks wireworks craftworks pipeworks voidworks; do checkouts+=("$HOME/minecraft_mods/$m"); done
-    for p in "${PACK_CHECKOUT:-}" "${CURSEFORGE_ROOT:-$HOME/curseforge}/Instances/FactoryWorks" "$HOME/MC/factoryworks"; do
-        [[ -n $p && -f $p/data/pack/local-jars.json ]] && { checkouts+=("$p"); break; }
-    done
 fi
 
 property() { sed -n "s/^$2 *= *//p" "$1/gradle.properties" 2> /dev/null | head -1; }
 for dir in "${checkouts[@]}"; do
     [[ -d $dir ]] || continue
-    if [[ -f $dir/data/pack/local-jars.json ]]; then
-        compare=("${release_tooling[@]}")
-    else
-        compare=("${files[@]}")
-    fi
     artifact="$(property "$dir" archives_name)" name="$(property "$dir" mod_name)"
     class="$(sed -n 's/^\(.\)/\U\1/p' <<< "${artifact:-examplelib}")"
     report=()
-    for f in "${compare[@]}"; do
+    for f in "${files[@]}"; do
         [[ -f $template/$f ]] || continue
         if [[ ! -f $dir/$f ]]; then report+=("missing $f"); continue; fi
         if [[ $f == *.jar ]]; then cmp -s "$template/$f" "$dir/$f" || report+=("$f differs"); continue; fi

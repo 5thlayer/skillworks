@@ -68,7 +68,7 @@ echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/
 
 # Release tooling that drifts from libworks' template misses its fixes, as a release.sh kept --no-upload's.
 echo "== release tooling against libworks' template (template-drift)"
-"$here/../template-drift/drift.sh" --release-tooling "$gw" "$bw" "$pw" "$ww" "$cw" ${pack:+"$pack"} | sed 's/^/  /'
+"$here/../template-drift/drift.sh" --release-tooling "$gw" "$bw" "$pw" "$ww" "$cw" | sed 's/^/  /'
 
 # The Groundworks the Pack would load were it to take the newest Groundworks, Beltworks, Wireworks and
 # Craftworks in ~/.m2: a FAIL is a car to release, or a pin that can't move alone.
