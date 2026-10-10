@@ -11,7 +11,6 @@ claude plugin install skillworks@skillworks
 |---|---|
 | `all-done` | debrief the session's feature: what's done, tested and unclear, and a numbered list to check in game |
 | `fresh-machine` | set up the Pack on a new machine: tools, the CurseForge profile, `scripts/bootstrap.py`, the sync and the checks |
-| `extract-library` | carve a Library out of the Pack, or fork one from upstream, and rename one later |
 | `quicklaunch` | open the game from the checkout you're in: a mod's dev client, or the Pack |
 | `conductor` | run a change across several checkouts while other sessions work in them: hand-over, approval, exact pushes |
 | `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the Pack loads, and release tooling drift |

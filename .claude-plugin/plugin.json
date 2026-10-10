@@ -1,6 +1,6 @@
 {
   "name": "skillworks",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Skills that act across the 5thlayer repos: extracting a Library from the FactoryWorks Pack, the release train for the Libraries and the Pack and its status, keeping the mods level with libworks' template, setting the Pack up on a fresh machine, launching the game from any of them, and debriefing a session's work.",
   "author": {
     "name": "5thlayer",
@@ -10,7 +10,6 @@
   "skills": [
     "./skills/all-done",
     "./skills/conductor",
-    "./skills/extract-library",
     "./skills/fresh-machine",
     "./skills/quicklaunch",
     "./skills/release-status",
