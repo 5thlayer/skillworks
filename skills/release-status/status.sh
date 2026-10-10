@@ -4,7 +4,7 @@
 #
 # The release train's state, for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and the
 # Pack: each car's version, what ~/.m2 holds, what isn't pushed, the Groundworks
-# each car nests or requires, whether the Pack's mods/ matches its pins and loads a Groundworks every
+# each car requires, whether the Pack's mods/ matches its pins and loads a Groundworks every
 # jar accepts, the same for the newest cars in ~/.m2, and the release tooling against libworks' template.
 # It changes nothing but fetches.
 set -uo pipefail
@@ -43,9 +43,9 @@ car() { # <name> <checkout> [artifact]
 
 car Groundworks "$gw" groundworks
 
-nests_groundworks() { # <checkout>
+requires_groundworks() { # <checkout>
     local dir=$1 range
-    echo "  nests Groundworks: $(grep -E "^\s*(strictly|prefer) " "$dir/build.gradle" | tr -s ' ' | tr '\n' ' ')"
+    echo "  requires Groundworks: $(grep -E "^\s*(strictly|prefer) " "$dir/build.gradle" | tr -s ' ' | tr '\n' ' ')"
     # build.gradle keeps the range in one def, which both strictly and neoforge.mods.toml read.
     range=$(sed -n "s/^def groundworksRange *= *'\(.*\)'.*/\1/p" "$dir/build.gradle")
     [[ -n $range ]] && echo "  groundworksRange: $range"
@@ -54,17 +54,17 @@ nests_groundworks() { # <checkout>
 }
 
 car Beltworks "$bw" beltworks
-nests_groundworks "$bw"
+requires_groundworks "$bw"
 
 car Pipeworks "$pw" pipeworks
 
 car Wireworks "$ww" wireworks
-nests_groundworks "$ww"
+requires_groundworks "$ww"
 
 # Craftworks' artifact is its archives_name; until it has one, assume craftworks.
 cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/null)
 car Craftworks "$cw" "${cw_artifact:-craftworks}"
-echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/gradle.properties"), unnested"
+echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/gradle.properties")"
 
 # Release tooling that drifts from libworks' template misses its fixes, as a release.sh kept --no-upload's.
 echo "== release tooling against libworks' template (template-drift)"

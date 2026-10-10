@@ -1,13 +1,13 @@
 ---
 name: release-train
-description: Release train for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and the FactoryWorks Pack, run by one conductor session. Use when a change in one must reach another — releasing any of them, moving the Groundworks the others nest or require, or moving the Pack to new versions.
+description: Release train for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and the FactoryWorks Pack, run by one conductor session. Use when a change in one must reach another — releasing any of them, moving the Groundworks the others require, or moving the Pack to new versions.
 ---
 
 # Release train
 
 A train is run by one session, the conductor, under the `conductor` skill: load it first. This skill is the train's own steps.
 
-The cars run in one order: Groundworks → Beltworks → Pipeworks → Wireworks → Craftworks → Pack. Beltworks and Wireworks each nest Groundworks; Craftworks requires it without nesting it, at least its `gradle.properties`' `groundworks_version`; and the Pack pins a Groundworks jar of its own. The game loads one Groundworks, the highest any jar offers, and every jar's range must accept it, which `release-status` checks. Pipeworks doesn't use Groundworks. The Modules wait on Groundworks alone, never on each other; they follow one order only so the train has one.
+The cars run in one order: Groundworks → Beltworks → Pipeworks → Wireworks → Craftworks → Pack. Beltworks, Wireworks and Craftworks each require Groundworks without nesting it (the Pack's #607): Beltworks and Wireworks in their `groundworksRange`, Craftworks at least its `gradle.properties`' `groundworks_version`. The Pack pins the Groundworks jar the game loads. Older Beltworks and Wireworks jars nest a copy, and the game loads the highest any jar offers, and every jar's range must accept it, which `release-status` checks. Pipeworks doesn't use Groundworks. The Modules wait on Groundworks alone, never on each other; they follow one order only so the train has one.
 
 | Car | Checkout | Releases with | Its rules |
 |---|---|---|---|
@@ -26,12 +26,12 @@ FactoryWorks Core is no car: the Pack's ADR-0128 took its source out of the Pack
 
 1. **Status.** Use the `release-status` skill. Done when you can say, for every car, what it reports, and you know which session is behind any uncommitted files or unpushed commits you didn't make: ask it whether they ride this train.
 2. **Plan.** Name each car that moves and its next version, and tell the sessions in those checkouts (`conductor`). Below 1.0, a breaking change bumps the minor, and an addition or a fix bumps the patch (libworks ADR 0001). A car whose `## Unreleased` is empty, or holds nothing a player or pack author would notice, doesn't move: its other commits are pushed without a release.
-   - A car's least accepted Groundworks is the one it nests or compiles against, so whenever that rises the lower bound rises with it.
+   - A car's least accepted Groundworks is the one it compiles against, so whenever that rises the lower bound rises with it.
    - A Groundworks patch moves, in each car that takes it, Beltworks' and Wireworks' `prefer` and the lower bound of the `groundworksRange` def in their `build.gradle`, which feeds `strictly` and `neoforge.mods.toml`'s `versionRange`, and Craftworks' `groundworks_version`.
    - A Groundworks minor also moves the upper bounds: `groundworksRange` in Beltworks and Wireworks, together, since the Pack loads one Groundworks for both; and Craftworks' cap below the next minor, the `0.6` in its `neoforge.mods.toml` `versionRange`. Core's jar caps it too and can't move, so a Groundworks minor waits until the Pack stops loading Core.
-   - A Beltworks or Wireworks release that only changes the Groundworks it nests is a patch.
+   - A Beltworks or Wireworks release that only moves the Groundworks it requires is a patch.
    Done when every planned range accepts the Groundworks the Pack will load, the highest any of its jars offers, and the user has approved every car's version. Step 3 checks this against the built jars.
-3. **Release the Libraries.** The conductor releases each moving Library in order, from a clean checkout at its ready commit (`conductor`), after the car before it is in `~/.m2`: a line under `## Unreleased` in `CHANGELOG.md` and any range change from step 2, then `scripts/release.sh <version>`. A Library's gate is its own: `release.sh` runs its build and GameTests against the cars before it. For Beltworks and Wireworks, the published jar's `META-INF/jarjar/metadata.json` names the Groundworks it nests.
+3. **Release the Libraries.** The conductor releases each moving Library in order, from a clean checkout at its ready commit (`conductor`), after the car before it is in `~/.m2`: a line under `## Unreleased` in `CHANGELOG.md` and any range change from step 2, then `scripts/release.sh <version>`. A Library's gate is its own: `release.sh` runs its build and GameTests against the cars before it.
    Done when `release-status` shows every planned version in `~/.m2` and its check of the newest cars there has no `FAIL`. When a car that isn't moving has a version in `~/.m2` newer than the Pack's pin, that check counts the wrong jar: run `${CLAUDE_SKILL_DIR}/../release-status/groundworks.py` on the jars the Pack will pin instead. A `FAIL` stops the train while nothing is public: the versions in `~/.m2` stay, and the fix is the next patch of the car that is wrong.
 4. **Take the Libraries into the Pack.** From a clean Pack checkout, the conductor runs `scripts/sync-local-jars.py` with a `<mod>=<version>` for each pinned car that moved (`groundworks=…`, `beltworks=…`, `pipeworks=…`, `wireworks=…`, `craftworks=…`). It installs and pins from `~/.m2` at once; a row whose CurseForge file isn't listed yet prints a line starting `pending ` and waits for step 6. Then the Pack's tests, which run `--check` (passing with rows pending), and a commit. A failure here stops the train while nothing is public, as at step 3.
    Done when the Pack's tests pass on the new pins and the sync is committed.
