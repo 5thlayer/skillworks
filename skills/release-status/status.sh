@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# The release train's state, for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks, Core and the
+# The release train's state, for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and the
 # Pack: each car's version, what ~/.m2 holds, what isn't pushed, the Groundworks
 # each car nests or requires, whether the Pack's mods/ matches its pins and loads a Groundworks every
 # jar accepts, the same for the newest cars in ~/.m2, and the release tooling against libworks' template.
@@ -85,10 +85,6 @@ if [[ -z $pack ]]; then
     exit 0
 fi
 car Pack "$pack"
-# Core is released from the Pack's checkout, with core-v tags and its own maven group.
-core_group=$(sed -n 's/^maven_group *= *//p' "$pack/gradle.properties")
-core_id=$(sed -n 's/^mod_id *= *//p' "$pack/gradle.properties")
-echo "  Core: mod_version $(sed -n 's/^mod_version *= *//p' "$pack/gradle.properties"), newest tag $(git -C "$pack" tag -l 'core-v*' | sort -V | tail -1), ~/.m2: $(ls "${MAVEN_REPO_LOCAL:-$HOME/.m2/repository}/${core_group//.//}/$core_id" 2> /dev/null | grep -E '^[0-9]' | sort -V | tr '\n' ' ')"
 echo "  pin: $(python3 -c 'import json,sys; print(", ".join(f"{r["mod"]} {r["version"]}" for r in json.load(open(sys.argv[1]))["jars"]))' \
     "$pack/data/pack/local-jars.json")"
 python3 "$pack/scripts/sync-local-jars.py" --check 2>&1 | sed 's/^/  --check: /'

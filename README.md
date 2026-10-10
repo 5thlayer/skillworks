@@ -16,7 +16,7 @@ claude plugin install skillworks@skillworks
 | `conductor` | run a change across several checkouts while other sessions work in them: hand-over, approval, exact pushes |
 | `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the Pack loads, and release tooling drift |
 | `template-drift` | compare the mods' shared tooling and docs with libworks' template, and carry a template fix out to them |
-| `release-train` | release Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks or FactoryWorks Core and carry the change to the FactoryWorks Pack |
+| `release-train` | release Groundworks, Beltworks, Pipeworks, Wireworks or Craftworks and carry the change to the FactoryWorks Pack |
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
 
