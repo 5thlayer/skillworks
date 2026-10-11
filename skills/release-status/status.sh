@@ -60,7 +60,8 @@ cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/
 car Craftworks "$cw" "${cw_artifact:-craftworks}"
 requires_groundworks "$cw"
 
-# Release tooling that drifts from libworks' template misses its fixes, as a release.sh kept --no-upload's.
+# Release tooling that drifts from libworks' template misses its fixes: a car on an older libworks plugin
+# releases and uploads with that plugin's tasks.
 echo "== release tooling against libworks' template (template-drift)"
 "$here/../template-drift/drift.sh" --release-tooling "$gw" "$bw" "$pw" "$ww" "$cw" | sed 's/^/  /'
 
