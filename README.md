@@ -10,12 +10,11 @@ claude plugin install skillworks@skillworks
 | Skill | Use it to |
 |---|---|
 | `all-done` | debrief the session's feature: what's done, tested and unclear, and a numbered list to check in game |
-| `fresh-machine` | set up the Pack on a new machine: tools, the CurseForge profile, `scripts/bootstrap.py`, the sync and the checks |
-| `quicklaunch` | open the game from the checkout you're in: a mod's dev client, or the Pack |
+| `quicklaunch` | open the dev client of the mod you're in, into its most recent save |
 | `conductor` | run a change across several checkouts while other sessions work in them: hand-over, approval, exact pushes |
-| `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the Pack loads, and release tooling drift |
+| `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the mods load together, and release tooling drift |
 | `template-drift` | compare the mods' shared tooling and docs with libworks' template, and carry a template fix out to them |
-| `release-train` | release Groundworks, Beltworks, Pipeworks, Wireworks or Craftworks and carry the change to the FactoryWorks Pack |
+| `release-train` | release Groundworks, Beltworks, Pipeworks, Wireworks and Craftworks together, moving the Groundworks the others require |
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
 

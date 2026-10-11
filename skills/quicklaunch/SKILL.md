@@ -1,6 +1,6 @@
 ---
 name: quicklaunch
-description: Launch Minecraft for the checkout you're in, straight into its most recent save — a mod repo (libworks, Groundworks, Beltworks, Craftworks) opens its dev client, the FactoryWorks Pack opens the pack. Use only when the user asks for it — "quicklaunch", "quick launch", "launch the game", "open the client" — never on your own initiative to check a change, since it opens a window on the user's screen.
+description: Launch the dev client of the mod repo you're in (libworks, Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks), straight into its most recent save. Use only when the user asks for it — "quicklaunch", "quick launch", "launch the game", "open the client" — never on your own initiative to check a change, since it opens a window on the user's screen.
 ---
 
 # Quick launch
@@ -13,10 +13,7 @@ QUICKLAUNCH_LOG=<scratchpad>/launch.log ${CLAUDE_SKILL_DIR}/quicklaunch.sh [save
 
 It opens the most recent save unless given one, and a new game's menu when there is none. Pass nothing else: the user is at the display and wants the window.
 
-The script works out which checkout it is in:
-
-- **A mod repo**, a Gradle build whose client run takes `-PquickPlay=<save>` (libworks' `build.gradle` has it), runs `./gradlew runClient` detached and waits for the client's sound engine. Its saves are in `run/saves`.
-- **The Pack**, where `scripts/launch.py` sits beside `data/pack/local-jars.json`, runs `scripts/launch.py` detached and checks the log's `launching as` line. Its saves are in `saves/`. It builds nothing, since the Pack has no build since its ADR-0128 took Core out, and the game runs on CurseForge's bundled Java. It launches as the player in `PF_PLAYER_NAME` and `PF_PLAYER_UUID`, or else in the Pack's `player.env` (those two lines), which the Pack commits: a name and UUID are public. Without a player it refuses, since a fresh player makes the save's opening quests and starting kit fire again. If it refuses for that, ask the user for their name and UUID rather than guessing.
+The checkout must be a mod repo, a Gradle build whose client run takes `-PquickPlay=<save>` (libworks' `build.gradle` has it). The script runs `./gradlew runClient` detached and waits for the client's sound engine. Its saves are in `run/saves`.
 
 Gradle runs with `--no-daemon`, so the game leaves no idle daemon behind once it closes. Never stop daemons yourself, with `./gradlew --stop` or otherwise: every checkout of a Gradle version shares them, and another session may be building with one.
 

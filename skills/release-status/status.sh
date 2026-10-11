@@ -2,10 +2,10 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# The release train's state, for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and the
-# Pack: each car's version, what ~/.m2 holds, what isn't pushed, the Groundworks
-# each car requires, whether the Pack's mods/ matches its pins and loads a Groundworks every
-# jar accepts, the same for the newest cars in ~/.m2, and the release tooling against libworks' template.
+# The release train's state, for Groundworks, Beltworks, Pipeworks, Wireworks and Craftworks: each
+# car's version, what ~/.m2 holds, what isn't pushed, the Groundworks each car requires, whether the
+# newest cars in ~/.m2 load a Groundworks every one accepts, and the release tooling against
+# libworks' template.
 # It changes nothing but fetches.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -16,11 +16,6 @@ bw="$HOME/minecraft_mods/beltworks"
 ww="$HOME/minecraft_mods/wireworks"
 pw="$HOME/minecraft_mods/pipeworks"
 cw="$HOME/minecraft_mods/craftworks"
-# The Pack's checkout: PACK_CHECKOUT, else the one CurseForge's instance links to, else ~/MC/factoryworks.
-pack=
-for p in "${PACK_CHECKOUT:-}" "${CURSEFORGE_ROOT:-$HOME/curseforge}/Instances/FactoryWorks" "$HOME/MC/factoryworks"; do
-    [[ -n $p && -f $p/data/pack/local-jars.json ]] && { pack="$(cd "$p" && pwd -P)"; break; }
-done
 
 car() { # <name> <checkout> [artifact]
     local name=$1 dir=$2 artifact=${3:-}
@@ -70,22 +65,13 @@ echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/
 echo "== release tooling against libworks' template (template-drift)"
 "$here/../template-drift/drift.sh" --release-tooling "$gw" "$bw" "$pw" "$ww" "$cw" | sed 's/^/  /'
 
-# The Groundworks the Pack would load were it to take the newest Groundworks, Beltworks, Wireworks and
-# Craftworks in ~/.m2: a FAIL is a car to release, or a pin that can't move alone.
+# The Groundworks the game would load with the newest Groundworks, Beltworks, Pipeworks, Wireworks and
+# Craftworks in ~/.m2: a FAIL is a car still to release.
 newest() { # <artifact>: its newest jar in ~/.m2
     local v; v=$(ls "$m2/$1" 2> /dev/null | grep -E '^[0-9]' | sort -V | tail -1)
     [[ -n $v ]] && echo "$m2/$1/$v/$1-$v.jar"
 }
-echo "== Groundworks, were the Pack to take the newest cars in ~/.m2"
+echo "== Groundworks, loaded with the newest cars in ~/.m2"
 jars=("$(newest groundworks)" "$(newest beltworks)" "$(newest pipeworks)" "$(newest wireworks)" "$(newest "${cw_artifact:-craftworks}")")
 python3 "$here/groundworks.py" $(for j in "${jars[@]}"; do [[ -f $j ]] && echo "$j"; done)
 
-if [[ -z $pack ]]; then
-    echo "== Pack  not found: set PACK_CHECKOUT to its checkout"
-    exit 0
-fi
-car Pack "$pack"
-echo "  pin: $(python3 -c 'import json,sys; print(", ".join(f"{r["mod"]} {r["version"]}" for r in json.load(open(sys.argv[1]))["jars"]))' \
-    "$pack/data/pack/local-jars.json")"
-python3 "$pack/scripts/sync-local-jars.py" --check 2>&1 | sed 's/^/  --check: /'
-python3 "$here/groundworks.py" $(ls "$pack"/mods/*.jar | grep -v -- '-sources\.jar$')
