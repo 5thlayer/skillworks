@@ -38,20 +38,19 @@ car() { # <name> <checkout> [artifact]
 
 car Groundworks "$gw" groundworks
 
-requires_groundworks() { # <checkout>
-    local dir=$1 range
-    echo "  requires Groundworks: $(grep -E "^\s*(strictly|prefer) " "$dir/build.gradle" | tr -s ' ' | tr '\n' ' ')"
-    # build.gradle keeps the range in one def, which both strictly and neoforge.mods.toml read.
-    range=$(sed -n "s/^def groundworksRange *= *'\(.*\)'.*/\1/p" "$dir/build.gradle")
-    [[ -n $range ]] && echo "  groundworksRange: $range"
-    echo "  neoforge.mods.toml requires: $(awk '/modId *= *"groundworks"/{on=1} on && /versionRange/{print $3; exit}' \
-        "$dir/src/main/resources/META-INF/neoforge.mods.toml")"
+requires_groundworks() { # <checkout>: the range in its libworks { upstream('groundworks') { range = ... } }
+    local range
+    range=$(awk "/upstream\\(['\"]groundworks['\"]\\)/{on=1} on && /range *=/{gsub(/.*range *= *['\"]|['\"].*/, \"\"); print; exit}" \
+        "$1/build.gradle")
+    [[ -n $range ]] || range="none named in libworks { upstream('groundworks') }"
+    echo "  requires Groundworks: $range"
 }
 
 car Beltworks "$bw" beltworks
 requires_groundworks "$bw"
 
 car Pipeworks "$pw" pipeworks
+requires_groundworks "$pw"
 
 car Wireworks "$ww" wireworks
 requires_groundworks "$ww"
@@ -59,7 +58,7 @@ requires_groundworks "$ww"
 # Craftworks' artifact is its archives_name; until it has one, assume craftworks.
 cw_artifact=$(sed -n 's/^archives_name *= *//p' "$cw/gradle.properties" 2> /dev/null)
 car Craftworks "$cw" "${cw_artifact:-craftworks}"
-echo "  requires Groundworks: >= $(sed -n 's/^groundworks_version *= *//p' "$cw/gradle.properties")"
+requires_groundworks "$cw"
 
 # Release tooling that drifts from libworks' template misses its fixes, as a release.sh kept --no-upload's.
 echo "== release tooling against libworks' template (template-drift)"
