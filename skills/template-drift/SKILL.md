@@ -20,7 +20,7 @@ Intended:
 - **Pipeworks**: `publishing.md` names its CurseForge project "5thlayer Pipeworks", since another mod holds Pipeworks there, and its icon and cover in `publish/`.
 - **Wireworks, Fieldworks**: a CI job, `textures`, that checks the committed textures against the script that builds them.
 - **Voidworks**: it calls itself a Module, not a Library (voidworks#24), in `upload.env`, `publishing.md` and the CI comment.
-- **`docs/agents/releases.md`** everywhere: each mod's own changelog sections and history.
+- **`docs/agents/releases.md`** everywhere, only for the mod's own paragraphs: what it requires or nests and how CI builds those tags, its own changelog sections and their ADR, its version history, and release checks of its own (Beltworks' ADR 0015). Every sentence the template also has keeps the template's wording, so the rest of the file is drift like any other.
 
 A libworks plugin older than the template's is a mod not yet moved to it: `build.gradle`'s version and the CI's `plugin-v` tag move together, as one `build: move to libworks-plugin <version>` commit.
 
