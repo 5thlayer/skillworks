@@ -14,7 +14,7 @@
 #
 # --release-tooling compares only what a release reads from the mod: the libworks plugin version
 # build.gradle applies, which carries the release and upload tasks, and upload.env.
-# With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Voidworks and Gearworks.
+# With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Fieldworks, Voidworks and Gearworks.
 # It prints, per checkout, "same", or the plugin version it applies against the template's and each
 # file that differs (with its line count) or is missing.
 # LIBWORKS points it at a local template checkout, at its last commit, instead of a fresh clone.
@@ -40,7 +40,7 @@ fi
 
 checkouts=("$@")
 if (( ${#checkouts[@]} == 0 )); then
-    for m in groundworks beltworks wireworks craftworks pipeworks voidworks gearworks; do checkouts+=("$HOME/minecraft_mods/$m"); done
+    for m in groundworks beltworks wireworks craftworks pipeworks fieldworks voidworks gearworks; do checkouts+=("$HOME/minecraft_mods/$m"); done
 fi
 
 property() { sed -n "s/^$2 *= *//p" "$1/gradle.properties" 2> /dev/null | head -1; }

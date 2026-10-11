@@ -5,7 +5,7 @@ The Claude Code skills that act across the 5thlayer repos, installed as the `ski
 ## Language
 
 **Library**:
-A 5thlayer mod made from libworks' template and released to Modrinth and CurseForge on its own version. Groundworks, Beltworks, Pipeworks, Wireworks and Craftworks are Libraries.
+A 5thlayer mod made from libworks' template and released to Modrinth and CurseForge on its own version. Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks are Libraries.
 _Avoid_: dependency, extracted mod
 
 ## Relationships

@@ -1,13 +1,13 @@
 ---
 name: release-train
-description: Release train for Groundworks, Beltworks, Pipeworks, Wireworks and Craftworks, run by one conductor session. Use when a change in one must reach another — releasing several of them together, or moving the Groundworks the others require.
+description: Release train for Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks, run by one conductor session. Use when a change in one must reach another — releasing several of them together, or moving the Groundworks the others require.
 ---
 
 # Release train
 
 A train is run by one session, the conductor, under the `conductor` skill: load it first. This skill is the train's own steps.
 
-The cars run in one order: Groundworks → Beltworks → Pipeworks → Wireworks → Craftworks. Every car builds, releases and uploads through libworks' convention plugin, and every car but Groundworks requires Groundworks without nesting it, in one range in its `build.gradle`: `libworks { upstream('groundworks') { range = '…' } }`, which the build compiles against, `neoforge.mods.toml` reads as `${groundworks_range}`, and CI builds the lower bound's tag for. Older Beltworks and Wireworks jars nest a copy, and the game loads the highest any jar offers, and every jar's range must accept it, which `release-status` checks. Craftworks also takes Pipeworks, optionally and with no upper bound, so it never waits on a Pipeworks release. The Modules otherwise wait on Groundworks alone, never on each other; they follow one order only so the train has one.
+Groundworks goes first, then Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks in any order (FactoryWorks ADR-0127). Every car builds, releases and uploads through libworks' convention plugin, and every car but Groundworks requires Groundworks without nesting it, in one range in its `build.gradle`: `libworks { upstream('groundworks') { range = '…' } }`, which the build compiles against, `neoforge.mods.toml` reads as `${groundworks_range}`, and CI builds the lower bound's tag for. Older Beltworks and Wireworks jars nest a copy, and the game loads the highest any jar offers, and every jar's range must accept it, which `release-status` checks. Craftworks also takes Pipeworks, optionally and with no upper bound, so it never waits on a Pipeworks release. The mods otherwise wait on Groundworks alone, never on each other.
 
 | Car | Checkout | Releases with | Its rules |
 |---|---|---|---|
@@ -16,6 +16,7 @@ The cars run in one order: Groundworks → Beltworks → Pipeworks → Wireworks
 | Pipeworks | `~/minecraft_mods/pipeworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `pipeworks-v<version>` | `docs/agents/releases.md` |
 | Wireworks | `~/minecraft_mods/wireworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `wireworks-v<version>` | `docs/agents/releases.md` |
 | Craftworks | `~/minecraft_mods/craftworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `v<version>` | `docs/agents/releases.md` |
+| Fieldworks | `~/minecraft_mods/fieldworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `fieldworks-v<version>` | `docs/agents/releases.md` |
 
 Every car's `release` stops after its tag; its `-Pupload` would upload publicly, for good, before the user's word, so the train never passes it, and uploads at step 4 with `sh ./gradlew upload -PreleaseVersion=<version>` from the car's checkout. Craftworks is the mod; "Personal Assembler" stays the name of its in-game feature.
 
@@ -28,9 +29,9 @@ Every car's `release` stops after its tag; its `-Pupload` would upload publicly,
    - A Groundworks minor also moves the upper bound, the next minor, in every car together, since the game loads one Groundworks for all of them.
    - A car's release that only moves the Groundworks it requires is a patch.
    Done when every planned range accepts the Groundworks the newest cars will load together, the highest any of them offers, and the user has approved every car's version. Step 3 checks this against the built jars.
-3. **Release the Libraries.** The conductor releases each moving Library in order, from a clean checkout at its ready commit (`conductor`), after the car before it is in `~/.m2`: a line under `## Unreleased` in `CHANGELOG.md` and any range change from step 2, then `sh ./gradlew release -PreleaseVersion=<version>`. A Library's gate is its own: `release` runs its build and GameTests against the cars before it.
+3. **Release the Libraries.** The conductor releases each moving Library from a clean checkout at its ready commit (`conductor`): Groundworks first, if it moves, and each mod once the Groundworks it requires is in `~/.m2`: a line under `## Unreleased` in `CHANGELOG.md` and any range change from step 2, then `sh ./gradlew release -PreleaseVersion=<version>`. A Library's gate is its own: `release` runs its build and GameTests against the Groundworks in `~/.m2`.
    Done when `release-status` shows every planned version in `~/.m2` and its check of the newest cars there has no `FAIL`. A `FAIL` stops the train while nothing is public: the versions in `~/.m2` stay, and the fix is the next patch of the car that is wrong.
-4. **Push and upload.** On the user's one word (`conductor`), in train order: each Library's release commit and tag, `git -C <checkout> push origin <release commit>:main <tag>`, then `sh ./gradlew upload -PreleaseVersion=<version>` from its checkout. `upload` uploads to the sites whose projects the car's `gradle.properties` names, takes its tokens from 1Password through `op run --env-file=publish/upload.env`, and retries one site with `-Psite=<modrinth|curseforge>`. Neither site lets a version be replaced, so a problem found later is the next patch.
+4. **Push and upload.** On the user's one word (`conductor`), Groundworks first: each Library's release commit and tag, `git -C <checkout> push origin <release commit>:main <tag>`, then `sh ./gradlew upload -PreleaseVersion=<version>` from its checkout. `upload` uploads to the sites whose projects the car's `gradle.properties` names, takes its tokens from 1Password through `op run --env-file=publish/upload.env`, and retries one site with `-Psite=<modrinth|curseforge>`. Neither site lets a version be replaced, so a problem found later is the next patch.
    If `op` fails "No accounts configured", the user turns on the 1Password desktop app's Settings → Developer → "Integrate with 1Password CLI", or runs `op account add`. Under the app integration `op whoami` reports "not signed in" while `op run` works, so test with `upload -PreleaseVersion=<version> -PdryRun`.
    Done when `release-status` shows each release commit and tag on origin, and each upload's output names both sites as uploaded or as already having the version.
 5. **Finish.** Tell each session the conductor froze that its checkout is its own again (`conductor`).

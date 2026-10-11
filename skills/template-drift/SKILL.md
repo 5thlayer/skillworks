@@ -1,6 +1,6 @@
 ---
 name: template-drift
-description: Compare the 5thlayer mods (Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Voidworks, Gearworks) with libworks' template, and carry a template fix out to them. Use when the template changes, when a fix lands in one mod's shared tooling or docs, when asked how far the mods have drifted from libworks, or when release-status reports release tooling that differs.
+description: Compare the 5thlayer mods (Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Fieldworks, Voidworks, Gearworks) with libworks' template, and carry a template fix out to them. Use when the template changes, when a fix lands in one mod's shared tooling or docs, when asked how far the mods have drifted from libworks, or when release-status reports release tooling that differs.
 ---
 
 # Template drift

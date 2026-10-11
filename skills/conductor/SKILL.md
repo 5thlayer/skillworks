@@ -1,6 +1,6 @@
 ---
 name: conductor
-description: One session conducts a change that spans several 5thlayer checkouts (Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks, libworks) while other sessions work in them — who does the work, how the checkouts are handed over, where the user approves, and what is pushed. Use when a change must land in checkouts other sessions are working in, such as a release train or a template fix carried out to the mods, or when another session hands over a cross-repo change.
+description: One session conducts a change that spans several 5thlayer checkouts (Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks, Fieldworks, libworks) while other sessions work in them — who does the work, how the checkouts are handed over, where the user approves, and what is pushed. Use when a change must land in checkouts other sessions are working in, such as a release train or a template fix carried out to the mods, or when another session hands over a cross-repo change.
 ---
 
 # Conductor
