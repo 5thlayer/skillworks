@@ -15,8 +15,8 @@ A difference is either **intended**, one of those below, or **drift**. For anyth
 
 Intended:
 
-- **Beltworks**: `upload.env` names the 1Password items without the template's line that every Library shares Beltworks' items, as their owner. Its issue tracker, labels and `LICENSE` are its own, from Upstream and FactoryWorks. It has no `publishing.md`, since its projects predate the doc.
-- **Craftworks**: `upload.env`'s comment says Craftworks where the template says every Library. Its glossary and tracker docs. No `publishing.md`, like Beltworks.
+- **Beltworks**: `upload.env` names the 1Password items without the template's line that every Library shares Beltworks' items, as their owner. `issue-tracker.md` passes `-R 5thlayer/beltworks` to every `gh` command, since its `upstream` remote is Rearth/SimpleBelts, and `LICENSE` licenses it per file. It has no `publishing.md`, since its projects predate the doc.
+- **Craftworks**: `upload.env`'s comment says Craftworks where the template says every Library. `issue-tracker.md`'s line on the GitHub MCP tools for cloud sessions without `gh`. No `publishing.md`, like Beltworks.
 - **Pipeworks**: `publishing.md` names its CurseForge project "5thlayer Pipeworks", since another mod holds Pipeworks there, and its icon and cover in `publish/`.
 - **Wireworks, Fieldworks**: a CI job, `textures`, that checks the committed textures against the script that builds them.
 - **Voidworks**: it calls itself a Module, not a Library (voidworks#24), in `upload.env`, `publishing.md` and the CI comment.
