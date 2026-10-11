@@ -9,7 +9,7 @@ Run `${CLAUDE_SKILL_DIR}/status.sh`. It fetches and changes nothing else. Report
 
 It prints, Groundworks first:
 
-- **Each car** (Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks, Fieldworks): its branch against origin, `mod_version`, the versions in `~/.m2`, uncommitted tracked files, and unpushed commits and tags. For every car but Groundworks, the Groundworks range it requires, from `upstream('groundworks') { range }` in its `build.gradle`.
+- **Each car** (Groundworks, Beltworks, Pipeworks, Wireworks, Craftworks, Fieldworks): its branch against origin, `mod_version`, the versions in `~/.m2`, uncommitted tracked files, and unpushed commits and tags. A warning when its latest release tag isn't on `origin/main`'s history, naming the commit there with the tag's tree, if any: the tag stays where it is, and anything counting from it, such as a changelog's `git log <tag>..HEAD`, counts from that commit instead. For every car but Groundworks, the Groundworks range it requires, from `upstream('groundworks') { range }` in its `build.gradle`.
 - **Release tooling against libworks' template**, from the `template-drift` skill's script: per checkout, `same`, or the libworks plugin version `build.gradle` applies when it isn't the template's (the plugin carries the release and upload tasks), and `upload.env` when it differs. That skill lists the intended differences; any other is drift, which the conductor fixes from the template before releasing with it.
 - **Groundworks, loaded with the newest cars in `~/.m2`**: the Groundworks the game would load, the highest version among the newest Groundworks jar and any copy nested in a newest car, and whether each car's `neoforge.mods.toml` range accepts it.
 

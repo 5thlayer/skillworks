@@ -33,6 +33,7 @@ car() { # <name> <checkout> [artifact]
     comm -23 <(git -C "$dir" tag -l | sort) \
              <(git -C "$dir" ls-remote -q --tags origin | sed -n 's|.*refs/tags/\([^^]*\)$|\1|p' | sort) \
         | sed 's/^/  unpushed tag: /'
+    "$here/tag-on-main.sh" "$dir"
 }
 
 car Groundworks "$gw" groundworks
