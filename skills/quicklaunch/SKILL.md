@@ -13,7 +13,7 @@ QUICKLAUNCH_LOG=<scratchpad>/launch.log ${CLAUDE_SKILL_DIR}/quicklaunch.sh [save
 
 It opens the most recent save unless given one, and a new game's menu when there is none. Pass nothing else: the user is at the display and wants the window.
 
-The checkout must be a mod repo, a Gradle build whose client run takes `-PquickPlay=<save>` (libworks' `build.gradle` has it). The script runs `./gradlew runClient` detached and waits for the client's sound engine. Its saves are in `run/saves`.
+The checkout must be a mod repo, a Gradle build whose client run takes `-PquickPlay=<save>` (libworks' convention plugin, `io.github.5thlayer.libworks.module`, adds it to every build that applies it). The script runs `./gradlew runClient` detached and waits for the client's sound engine. Its saves are in `run/saves`.
 
 Gradle runs with `--no-daemon`, so the game leaves no idle daemon behind once it closes. Never stop daemons yourself, with `./gradlew --stop` or otherwise: every checkout of a Gradle version shares them, and another session may be building with one.
 

@@ -50,6 +50,12 @@ bare="$tmp/bare"
 mkdir -p "$bare"; git -C "$bare" init -q; touch "$bare/gradlew"; echo "// takes no quickPlay" > "$bare/build.gradle"
 check "mod: refuses a build without the quickPlay hook" 1 "no -PquickPlay hook" "$bare"
 
+plugin="$tmp/plugin"
+mkdir -p "$plugin/run/saves/World"; git -C "$plugin" init -q; touch "$plugin/gradlew" "$plugin/run/saves/World/level.dat"
+printf '%s\n' "plugins {" "    id 'io.github.5thlayer.libworks.module' version '0.1.2'" "}" > "$plugin/build.gradle"
+check "mod: takes a build applying libworks' plugin, which carries the hook" 0 \
+    "run: sh ./gradlew --no-daemon runClient -PquickPlay=World"$'\n' "$plugin"
+
 nosave="$tmp/nosave"
 mkdir -p "$nosave"; git -C "$nosave" init -q; touch "$nosave/gradlew"; cp "$mod/build.gradle" "$nosave/"
 check "mod: with no save, launches to the menu" 0 "run: sh ./gradlew --no-daemon runClient"$'\n' "$nosave"

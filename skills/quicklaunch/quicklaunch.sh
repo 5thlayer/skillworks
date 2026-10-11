@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: MIT
 #
 # Launch the dev client of the mod repo the working directory is in (a Gradle build whose client run
-# takes -PquickPlay), into its most recent save, unless a client is already running.
+# takes -PquickPlay, as libworks' convention plugin's does), into its most recent save, unless a client
+# is already running.
 #
 #   quicklaunch.sh [--dry-run] [save name]
 #
@@ -22,8 +23,9 @@ root="$(git rev-parse --show-toplevel 2> /dev/null)" || fail "not in a git check
 cd "$root"
 
 [[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo."
-grep -qE "gradleProperty\(['\"]quickPlay" build.gradle \
-    || fail "build.gradle has no -PquickPlay hook on its client run; see libworks' build.gradle."
+# libworks' convention plugin adds the hook to the client run of every build that applies it.
+grep -qE "id ['\"]io\.github\.5thlayer\.libworks\.module['\"]|gradleProperty\(['\"]quickPlay" build.gradle \
+    || fail "build.gradle has no -PquickPlay hook on its client run; apply libworks' convention plugin, io.github.5thlayer.libworks.module."
 saves=run/saves
 
 if [[ -n $save ]]; then
