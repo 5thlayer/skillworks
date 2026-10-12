@@ -14,7 +14,7 @@ claude plugin install skillworks@skillworks
 | `conductor` | run a change across several checkouts while other sessions work in them: hand-over, approval, exact pushes |
 | `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the mods load together, and release tooling drift |
 | `template-drift` | compare the mods' shared tooling and docs with libworks' template, and carry a template fix out to them |
-| `release-train` | release Groundworks, then Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks, moving the Groundworks the others require |
+| `release-train` | release Groundworks, then Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks, moving the Groundworks the others require, and last the Showcase pack |
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
 
