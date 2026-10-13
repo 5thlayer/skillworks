@@ -20,6 +20,9 @@
 # of the build's, so the build's own files are never edited. With a plugin older than
 # writeGameTestServerCommand, the one Gradle run still runs every test.
 #
+# --cpus <list> runs each server under taskset -c <list>, e.g. --cpus 0, to stress a timing-sensitive
+# flake: a server on one CPU gets a background pool of one worker. The Gradle build stays unpinned.
+#
 # Each run's log is build/gametest-loop/run<i>.log. The server exits with its number of failed required
 # tests. Exit 0 when every run passed, 1 when any run failed, crashed or timed out, 2 on a refusal.
 # GAMETEST_LOOP_TIMEOUT caps a direct run (default 600s).
@@ -27,18 +30,22 @@ set -euo pipefail
 
 fail() { echo "gametest-loop: $*" >&2; exit 2; }
 
-mode=loop selector= runs=10
+mode=loop selector= cpus= runs=10
 while (($#)); do
     case $1 in
         --reuse) mode=reuse ;;
         --classpath) mode=classpath ;;
         --tests) (($# > 1)) || fail "--tests needs a selector, such as gearworks:solar_*."; selector=$2; shift ;;
+        --cpus) (($# > 1)) || fail "--cpus needs a CPU list, such as 0 or 0,2-3."; cpus=$2; shift ;;
         *) runs=$1 ;;
     esac
     shift
 done
 [[ -z $selector || $selector =~ ^[a-z0-9_.-]+:[^[:space:]]+$ ]] \
     || fail "--tests takes namespace:pattern, such as gearworks:solar_*, not \"$selector\"."
+[[ -z $cpus || $cpus =~ ^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$ ]] \
+    || fail "--cpus takes a CPU list, such as 0 or 0,2-3, not \"$cpus\"."
+[[ -z $cpus ]] || command -v taskset > /dev/null || fail "--cpus needs taskset, from util-linux."
 [[ $runs =~ ^[1-9][0-9]*$ ]] || fail "runs must be a positive number, not \"$runs\"."
 per_run="${GAMETEST_LOOP_TIMEOUT:-600}"
 
@@ -93,7 +100,8 @@ classify() { # <log> <exit code>: "passed", "<n> failed: <tests>", "timed out" o
     if [[ $code == 124 ]]; then echo "timed out after ${per_run}s"
     elif grep -aqE 'All [0-9]+ required tests passed' "$log"; then echo passed
     elif grep -aqE '[0-9]+ required tests failed' "$log"; then
-        tests="$(grep -aoE '^ +- [a-z0-9_.-]+:[^:]+' "$log" | sed -E 's/^ +- //' | sort -u | paste -sd, - | sed 's/,/, /g')"
+        # Each failed test on a line of its own, after the log's "[time] [thread/ERROR] [logger]:" prefix.
+        tests="$(grep -aoE '(^|\]:) +- [a-z0-9_.-]+:[^:]+' "$log" | sed -E 's/^(.*\]:)? +- //' | sort -u | paste -sd, - | sed 's/,/, /g')"
         echo "$(grep -aoE '[0-9]+ required tests failed' "$log" | tail -1 | grep -oE '^[0-9]+') failed: ${tests:-?}"
     else echo "crashed, exit $code"
     fi
@@ -152,6 +160,10 @@ if [[ -n $selector ]]; then
         if [[ ${cmd[i]} == "$args_arg" ]]; then cmd[i]="@$args_copy"; fi
     done
     echo "tests: $selector"
+fi
+if [[ -n $cpus ]]; then
+    cmd=(taskset -c "$cpus" "${cmd[@]}")
+    echo "cpus: $cpus"
 fi
 # Where ModDevGradle runs the server, and the report's folder, both of which its Gradle task makes first.
 mkdir -p "$server_cwd" "$root/build/reports"

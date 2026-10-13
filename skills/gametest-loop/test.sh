@@ -16,20 +16,22 @@ trap 'pkill -f "$tmp/" 2> /dev/null; rm -rf "$tmp"' EXIT
 failed=0
 
 # The fake server: the n-th start (counted in $tmp/starts) prints and exits as line n of $tmp/results says:
-# "pass", "fail <test>...", "crash" or "hang". Each start adds its @-file to $tmp/argfiles and the
-# selector that file passes to $tmp/selectors.
+# "pass", "fail <test>...", "crash" or "hang", in lines prefixed as NeoForge's server logs them. Each start adds its @-file to $tmp/argfiles and the
+# selector that file passes to $tmp/selectors, and the CPUs it may run on to $tmp/cpus.
 cat > "$tmp/java" << EOF
 #!/usr/bin/env bash
 n=\$(( \$(cat "$tmp/starts" 2> /dev/null || echo 0) + 1 )); echo \$n > "$tmp/starts"
+sed -n 's/^Cpus_allowed_list:\s*//p' /proc/\$\$/status >> "$tmp/cpus"
 for a in "\$@"; do case \$a in @*)
     echo "\${a#@}" >> "$tmp/argfiles"; sed -n '/^--tests\$/{n;p}' "\${a#@}" >> "$tmp/selectors" 2> /dev/null ;;
 esac; done
 read -ra r <<< "\$(sed -n "\${n}p" "$tmp/results")"
+log="[19:47:47] [Server thread"  # each line as NeoForge's server logs it
 sleep 0.5
 case \${r[0]:-pass} in
-    pass) echo "All 3 required tests passed :)"; exit 0 ;;
-    fail) echo "\$(( \${#r[@]} - 1 )) required tests failed :("
-          for t in "\${r[@]:1}"; do echo "   - mod:\$t: Expected true"; done; exit \$(( \${#r[@]} - 1 )) ;;
+    pass) echo "\$log/INFO] [minecraft/GameTestServer]: All 3 required tests passed :)"; exit 0 ;;
+    fail) echo "\$log/ERROR] [minecraft/GameTestServer]: \$(( \${#r[@]} - 1 )) required tests failed :("
+          for t in "\${r[@]:1}"; do echo "\$log/ERROR] [minecraft/GameTestServer]:    - mod:\$t: Expected true"; done; exit \$(( \${#r[@]} - 1 )) ;;
     crash) echo "Exception in thread main"; exit 1 ;;
     hang) sleep 30 ;;
 esac
@@ -44,6 +46,7 @@ mkdir -p "$mod/src/main"; git -C "$mod" init -q; echo "plugins {}" > "$mod/build
 cat > "$mod/gradlew" << EOF
 #!/bin/sh
 echo "\$*" >> "$tmp/gradle-calls"
+sed -n 's/^Cpus_allowed_list:\s*//p' /proc/\$\$/status > "$tmp/gradle-cpus"
 [ -f "$tmp/compile-error" ] && { echo "* What went wrong:"; echo "Compilation failed"; exit 1; }
 set -- "$tmp/java" -Dfml.modFolders=mod%%$mod/build/classes/java/main -cp "$mod/a.jar:$mod/b.jar" \
     net.neoforged.devlaunch.Main "@$mod/build/moddev/gameTestServerRunProgramArgs.txt" "\$@"
@@ -65,7 +68,7 @@ touch -t 202601010000 "$mod/src/main/A.java" "$mod/build.gradle"
 check() { # <name> <exit code> <expected substring> [args...]: run the loop in $mod with $results
     local name=$1 status=$2 want=$3; shift 3
     local got code=0
-    printf '%s\n' "${results[@]}" > "$tmp/results"; rm -f "$tmp/starts" "$tmp/gradle-calls" "$tmp/argfiles" "$tmp/selectors"
+    printf '%s\n' "${results[@]}" > "$tmp/results"; rm -f "$tmp/starts" "$tmp/gradle-calls" "$tmp/argfiles" "$tmp/selectors" "$tmp/cpus" "$tmp/gradle-cpus"
     got="$(cd "$mod/src" && GAMETEST_LOOP_TIMEOUT=3 "$loop" "$@" 2>&1)" || code=$?
     if [[ $got$'\n' == *"$want"* && $code == "$status" ]]; then
         echo "ok   $name"
@@ -115,6 +118,19 @@ calls "--reuse --tests: no Gradle call" ""
 selected "--reuse --tests: the selector reaches the run" "mod:solar_a"
 check "--reuse without --tests: the build's selector again" 0 "1 of 1 direct runs passed" --reuse 1
 selected "--reuse without --tests: the build's selector reaches the run" "mod:*"
+own_cpus="$(sed -n 's/^Cpus_allowed_list:\s*//p' /proc/$$/status)"
+results=(pass pass)
+check "--cpus: builds, then pins the runs" 0 "cpus: 0" --cpus 0 2
+[[ $(cat "$tmp/cpus") == "0"$'\n'"0" ]] && echo "ok   --cpus: every run is pinned to those CPUs" \
+    || { echo "FAIL --cpus: the servers ran on:"; cat "$tmp/cpus"; failed=1; }
+[[ $(cat "$tmp/gradle-cpus") == "$own_cpus" ]] && echo "ok   --cpus: Gradle is not pinned" \
+    || { echo "FAIL --cpus: Gradle ran on $(cat "$tmp/gradle-cpus"), not $own_cpus"; failed=1; }
+results=(pass)
+check "--cpus with --reuse and --tests" 0 "1 of 1 direct runs passed" --reuse --cpus 0 --tests mod:solar_a 1
+[[ $(cat "$tmp/cpus") == "0" ]] && echo "ok   --cpus with --reuse: the run is pinned" \
+    || { echo "FAIL --cpus with --reuse: the server ran on:"; cat "$tmp/cpus"; failed=1; }
+check "--cpus refuses a list taskset can't read" 2 "--cpus takes a CPU list" --cpus all
+check "--cpus refuses a missing list" 2 "--cpus needs a CPU list" --cpus
 check "--tests refuses a selector without a namespace" 2 "--tests takes namespace:pattern" --tests 'solar_*'
 check "--tests refuses a selector with a space" 2 "--tests takes namespace:pattern" --tests 'mod:solar a'
 check "--tests refuses a missing selector" 2 "--tests needs a selector" --tests

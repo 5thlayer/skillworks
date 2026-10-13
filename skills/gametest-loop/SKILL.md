@@ -27,6 +27,10 @@ ${CLAUDE_SKILL_DIR}/gametest-loop.sh --tests 'gearworks:solar_*' [runs]
 
 Every run then reads `build/gametest-loop/gameTestServerRunProgramArgs.txt`, a copy of the build's program arguments with that selector in place of `<modId>:*`. Don't edit the files in `build/moddev` instead: a loop without `--tests` re-reads them every run. With a plugin older than `writeGameTestServerCommand`, the one run through Gradle still runs every test.
 
+## A timing-sensitive flake
+
+To make a flake that hangs on timing fail more often, pin the server to fewer CPUs with `--cpus <list>`, such as `--cpus 0`; it combines with `--tests` and `--reuse`. Each run starts under `taskset -c <list>`, so the server's background pool shrinks to one worker fewer than the CPUs it has, and never below one. The Gradle build stays unpinned.
+
 ## After a change
 
 Edited sources need Gradle: run it again without `--reuse`, and it rebuilds. With nothing changed since the last build, `--reuse [runs]` skips Gradle, with or without `--tests`; it refuses once `src/` or the build files are newer than that build.
