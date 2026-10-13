@@ -20,7 +20,7 @@ Intended:
 - **Craftworks**: `upload.env`'s comment says Craftworks where the template says every Library. `issue-tracker.md`'s line on the GitHub MCP tools for cloud sessions without `gh`. No `publishing.md`, like Beltworks.
 - **Pipeworks**: `publishing.md` names its CurseForge project "5thlayer Pipeworks", since another mod holds Pipeworks there, and its icon and cover in `publish/`.
 - **Wireworks, Fieldworks**: a CI job, `textures`, that checks the committed textures against the script that builds them.
-- **Voidworks**: it calls itself a Module, not a Library (voidworks#24), in `upload.env`, `publishing.md`, `releases.md` and the CI comment. Its `releases.md` says it names no projects "as Voidworks does", since the template's example is Voidworks itself.
+- **Voidworks**: it calls itself a Module, not a Library (voidworks#24), in `upload.env`, `publishing.md`, `releases.md` and the CI comment. Its `releases.md` says it names no projects "as Voidworks does", since the template's example is Voidworks itself. `issue-tracker.md` has a `## Specs` section: a spec lives in `docs/spec/`, which `/to-spec` updates, and the issue links to it.
 - **`docs/agents/releases.md`** everywhere, only for the mod's own paragraphs: what it requires or nests and how CI builds those tags, its own changelog sections and their ADR, its version history, and release checks of its own (Beltworks' ADR 0015). Every sentence the template also has keeps the template's wording, so the rest of the file is drift like any other.
 
 A libworks plugin older than the template's is a mod not yet moved to it: `build.gradle`'s version and the CI's `plugin-v` tag move together, as one `build: move to libworks-plugin <version>` commit.
