@@ -13,13 +13,13 @@ From anywhere in the mod's checkout, in the background (a run takes about 25–7
 ${CLAUDE_SKILL_DIR}/gametest-loop.sh [runs]
 ```
 
-It builds and runs the tests once with `./gradlew --no-daemon runGameTestServer`, captures the server's command line and working directory from `/proc` while that runs, then runs the server directly `runs` times (default 10). `--no-daemon` leaves no daemon of this checkout behind, so there is none to stop afterwards.
+It builds with `./gradlew --no-daemon writeGameTestServerCommand`, which has libworks' plugin write the server's whole command line to `build/moddev/gameTestServerRunCommand.txt`, then runs the server directly `runs` times (default 10). A plugin older than that task gets `runGameTestServer` instead, which runs the tests once while the script reads the server's command line from `/proc`. `--no-daemon` leaves no daemon of this checkout behind, so there is none to stop afterwards.
 
 It prints a line per run (`passed`, `<n> failed: <tests>`, `crashed`, `timed out`), then how many passed and, for each failed test, the runs it failed in. Report those last lines. The logs are in `build/gametest-loop/`: read a failed run's `run<i>.log` for the assertion. Exit 0 means every run passed, 1 that one did not, 2 a refusal: report the refusal and leave the cause to the user.
 
 ## After a change
 
-Edited sources need Gradle: run it again without arguments, and it rebuilds and re-captures. With nothing changed since the last capture, `--reuse [runs]` skips Gradle; it refuses once `src/` or the build files are newer than the capture.
+Edited sources need Gradle: run it again without `--reuse`, and it rebuilds. With nothing changed since the last build, `--reuse [runs]` skips Gradle; it refuses once `src/` or the build files are newer than that build.
 
 To check that a file compiles without Gradle:
 

@@ -2,16 +2,18 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# Run the game tests of the mod repo the working directory is in many times over, with Gradle only once:
-# a `runGameTestServer` build compiles the mod and runs the tests, and while it runs the game-test server
-# JVM's command line and working directory are captured from /proc. Every further run starts that JVM
-# directly, so the loop holds no Gradle client, daemon or slot that other checkouts' builds need.
+# Run the game tests of the mod repo the working directory is in many times over, with Gradle only once.
+# One build compiles the mod and yields the game-test server JVM's command line; every run then starts
+# that JVM directly, so the loop holds no Gradle client, daemon or slot that other checkouts' builds need.
+# The command line comes from libworks' plugin, whose writeGameTestServerCommand task writes it to
+# build/moddev; with a plugin older than that task, runGameTestServer runs the tests once and the command
+# line is captured from /proc while the server runs.
 #
-#   gametest-loop.sh [runs]          build and capture through Gradle, then run the server directly
-#                                    [runs] times (default 10)
-#   gametest-loop.sh --reuse [runs]  skip Gradle: loop the last capture, refused once the sources are
-#                                    newer than it
-#   gametest-loop.sh --classpath     print the captured classpath, for a javac check without Gradle
+#   gametest-loop.sh [runs]          build through Gradle, then run the server directly [runs] times
+#                                    (default 10)
+#   gametest-loop.sh --reuse [runs]  skip Gradle: loop the last command line, refused once the sources
+#                                    are newer than it
+#   gametest-loop.sh --classpath     print the server's classpath, for a javac check without Gradle
 #
 # Each run's log is build/gametest-loop/run<i>.log. The server exits with its number of failed required
 # tests. Exit 0 when every run passed, 1 when any run failed, crashed or timed out, 2 on a refusal.
@@ -34,7 +36,8 @@ cd "$root"
 [[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo."
 
 state="$root/build/gametest-loop"
-cmd_file="$state/server.cmd" cwd_file="$state/server.cwd"
+cmd_file="$state/server.cmd" gradle_log="$state/gradle.log"
+written="$root/build/moddev/gameTestServerRunCommand.txt"
 # The server's identity: libworks' plugin passes it this checkout's own program-args file, and runs it in
 # run/gametest. Both together pick out this checkout's server, never the shell that searches for it.
 args_arg="@$root/build/moddev/gameTestServerRunProgramArgs.txt"
@@ -50,7 +53,7 @@ servers() { # this checkout's running game-test servers, one pid a line
 }
 
 if [[ $mode == classpath ]]; then
-    [[ -f $cmd_file ]] || fail "no capture in $state; run without --classpath first."
+    [[ -f $cmd_file ]] || fail "no command line in $state; run without --classpath first."
     grep -A1 -xE -- '-cp|-classpath|--class-path' "$cmd_file" | tail -1
     exit 0
 fi
@@ -62,9 +65,9 @@ running="$(servers | paste -sd, -)"
 mkdir -p "$state"
 
 if [[ $mode == reuse ]]; then
-    [[ -f $cmd_file && -f $cwd_file ]] || fail "no capture in $state; run without --reuse first."
+    [[ -f $cmd_file ]] || fail "no command line in $state; run without --reuse first."
     newer="$(find src build.gradle gradle.properties settings.gradle -newer "$cmd_file" -type f 2> /dev/null | head -1 || true)"
-    [[ -z $newer ]] || fail "$newer changed since the capture; run without --reuse to rebuild through Gradle."
+    [[ -z $newer ]] || fail "$newer changed since the build; run without --reuse to rebuild through Gradle."
 fi
 
 # Stopped, it stops what it started: its Gradle build or server, and this checkout's server, which
@@ -83,36 +86,51 @@ classify() { # <log> <exit code>: "passed", "<n> failed: <tests>", "timed out" o
     fi
 }
 
-if [[ $mode == loop ]]; then
+gradle() { # <task>: start it in the background, where a stop reaches it
     # --no-daemon: the build's JVMs end with it, so no daemon of ours stays behind to be stopped, and
     # the shared daemons of other checkouts are never touched.
-    gradle_log="$state/gradle.log"
-    rm -f "$cmd_file" "$cwd_file"
-    sh ./gradlew --no-daemon --console=plain runGameTestServer > "$gradle_log" 2>&1 < /dev/null &
-    gradle=$!
-    pids=("$gradle")
-    echo "gradle: building and running the tests once; log: $gradle_log"
-    while kill -0 "$gradle" 2> /dev/null; do
-        if [[ ! -f $cmd_file ]]; then
-            pid="$(servers | head -1)"
-            if [[ -n $pid ]]; then
-                tr '\0' '\n' < "/proc/$pid/cmdline" > "$cmd_file.tmp" && mv "$cmd_file.tmp" "$cmd_file"
-                echo "$server_cwd" > "$cwd_file"
-            fi
-        fi
-        sleep 0.2
-    done
-    code=0; wait "$gradle" || code=$?
+    sh ./gradlew --no-daemon --console=plain "$1" > "$gradle_log" 2>&1 < /dev/null &
+    pids=("$!")
+}
+gradle_failed() { # <what>
+    grep -a -A5 "What went wrong" "$gradle_log" >&2 || tail -20 "$gradle_log" >&2
+    fail "$1; log: $gradle_log"
+}
+
+if [[ $mode == loop ]]; then
+    rm -f "$cmd_file" "$written"
+    echo "gradle: building; log: $gradle_log"
+    gradle writeGameTestServerCommand
+    code=0; wait "${pids[0]}" || code=$?
     pids=()
-    if [[ ! -f $cmd_file ]]; then
-        grep -a -A5 "What went wrong" "$gradle_log" >&2 || tail -20 "$gradle_log" >&2
-        fail "Gradle started no game-test server to capture; log: $gradle_log"
+    if [[ $code == 0 && -f $written ]]; then
+        cp "$written" "$cmd_file"
+        echo "gradle: built; the plugin wrote the server's command line"
+    elif grep -aq "'writeGameTestServerCommand' not found" "$gradle_log"; then
+        echo "gradle: the plugin writes no command line; running the tests once to capture it"
+        gradle runGameTestServer
+        while kill -0 "${pids[0]}" 2> /dev/null; do
+            if [[ ! -f $cmd_file ]]; then
+                pid="$(servers | head -1)"
+                if [[ -n $pid ]]; then
+                    tr '\0' '\n' < "/proc/$pid/cmdline" > "$cmd_file.tmp" && mv "$cmd_file.tmp" "$cmd_file"
+                fi
+            fi
+            sleep 0.2
+        done
+        code=0; wait "${pids[0]}" || code=$?
+        pids=()
+        [[ -f $cmd_file ]] || gradle_failed "Gradle started no game-test server to capture"
+        echo "gradle: $(classify "$gradle_log" "$code")"
+    else
+        gradle_failed "the build failed"
     fi
-    echo "gradle: $(classify "$gradle_log" "$code")"
 fi
 
 mapfile -t cmd < "$cmd_file"
-cd "$(cat "$cwd_file")"
+# Where ModDevGradle runs the server, and the report's folder, both of which its Gradle task makes first.
+mkdir -p "$server_cwd" "$root/build/reports"
+cd "$server_cwd"
 passed=0
 declare -A failed_in=()
 for i in $(seq 1 "$runs"); do
