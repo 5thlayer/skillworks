@@ -12,11 +12,15 @@
 #
 #   drift.sh [--release-tooling] [mod checkout...]
 #
+# It also reports a mod without the template's Works tab: a listener on WorksTab.KEY, a CreativeTabTests
+# that calls WorksTabCheck, or the required libworks dependency in neoforge.mods.toml; --release-tooling
+# leaves these out.
+#
 # --release-tooling compares only what a release reads from the mod: the libworks plugin version
 # build.gradle applies, which carries the release and upload tasks, and upload.env.
 # With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Fieldworks, Voidworks and Gearworks.
-# It prints, per checkout, "same", or the plugin version it applies against the template's and each
-# file that differs (with its line count) or is missing.
+# It prints, per checkout, "same", or the plugin version it applies against the template's, each part
+# of the Works tab it lacks, and each file that differs (with its line count) or is missing.
 # LIBWORKS points it at a local template checkout, at its last commit, instead of a fresh clone.
 set -uo pipefail
 
@@ -54,6 +58,15 @@ for dir in "${checkouts[@]}"; do
     version="$(plugin "$dir")"
     if [[ -z $version ]]; then report+=("applies no libworks plugin (template: $template_plugin)")
     elif [[ $version != "$template_plugin" ]]; then report+=("libworks plugin $version (template: $template_plugin)"); fi
+    if [[ -z $release_only ]]; then
+        grep -rqE 'getTabKey\(\) *[!=]= *WorksTab\.KEY|WorksTab\.KEY *[!=]= *[[:alnum:]_]+\.getTabKey\(\)' "$dir/src/main/java" 2> /dev/null \
+            || report+=("no Works tab listener (on WorksTab.KEY)")
+        grep -rqE --include=CreativeTabTests.java 'WorksTabCheck\.' "$dir/src" 2> /dev/null \
+            || report+=("no CreativeTabTests calling WorksTabCheck")
+        # The libworks entry's own lines, up to the next table.
+        sed -n '/^ *modId *= *"libworks"/,/^ *\[/p' "$dir/src/main/resources/META-INF/neoforge.mods.toml" 2> /dev/null \
+            | grep -qE '^ *type *= *"required"' || report+=("neoforge.mods.toml does not require libworks")
+    fi
     for f in "${files[@]}"; do
         [[ -f $template/$f ]] || continue
         if [[ ! -f $dir/$f ]]; then report+=("missing $f"); continue; fi

@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: MIT
 #
 # drift.sh on a fixture template and mods: the template filled as a new Library, the example names
-# read as a mod's own, the tag prefix ignored, and a changed or missing file and an older plugin reported.
+# read as a mod's own, the tag prefix ignored, and a changed or missing file, an older plugin and a
+# missing part of the Works tab reported.
 #
 #   skills/template-drift/test.sh
 set -uo pipefail
@@ -55,6 +56,11 @@ mod() { # <dir> <archives_name> <mod_name> <tag prefix> <class> [plugin version]
     echo 'tools' > "$d/mise.toml"
     echo 'Groundworks and Beltworks require Groundworks.' > "$d/nest.md"
     echo 'its own glossary' > "$d/GLOSSARY.md"
+    local java="$d/src/main/java/io/github/_5thlayer/$2"
+    mkdir -p "$java/gametest" "$d/src/main/resources/META-INF"
+    printf 'if (event.getTabKey() != WorksTab.KEY) {\n    return;\n}\n' > "$java/WorksTabContents.java"
+    printf 'tests.test("in_order", 1, helper -> WorksTabCheck.inOrder(helper, MOD_ID, ORDER));\n' > "$java/gametest/CreativeTabTests.java"
+    printf '[[dependencies.${mod_id}]]\nmodId = "libworks"\ntype = "required"\n' > "$d/src/main/resources/META-INF/neoforge.mods.toml"
 }
 mod renamed pipeworks Pipeworks pipeworks- Pipeworks
 mod kept examplelib "Example Library" "" ExampleLib
@@ -63,6 +69,18 @@ mod drifted wireworks Wireworks wireworks- Wireworks
 echo 'tools, an old fork' > "$tmp/drifted/mise.toml"
 rm "$tmp/drifted/publish/upload.env"
 mod behind craftworks Craftworks "" Craftworks 0.1.0
+mod tabless fieldworks Fieldworks "" Fieldworks
+rm -r "$tmp/tabless/src/main/java"
+printf 'modId = "neoforge"\n' > "$tmp/tabless/src/main/resources/META-INF/neoforge.mods.toml"
+mod optional voidworks Voidworks "" Voidworks
+printf '[[dependencies.${mod_id}]]\nmodId = "libworks"\ntype = "optional"\n[[dependencies.${mod_id}]]\nmodId = "neoforge"\ntype = "required"\n' \
+    > "$tmp/optional/src/main/resources/META-INF/neoforge.mods.toml"
+mod listed gearworks Gearworks "" Gearworks
+# The listener in the mod class, as Beltworks has it, with the comparison turned round, and a CreativeTabTests that checks no Works tab.
+listed="$tmp/listed/src/main/java/io/github/_5thlayer/gearworks"
+rm "$listed/WorksTabContents.java"
+printf 'if (WorksTab.KEY == event.getTabKey()) return;\n' > "$listed/Gearworks.java"
+printf 'tests.test("no_item", 1, CreativeTabTests::noItem);\n' > "$listed/gametest/CreativeTabTests.java"
 
 check() { # <name> <expected substring> [args...]
     local name=$1 want=$2; shift 2
@@ -89,5 +107,12 @@ check "--release-tooling compares upload.env" "missing publish/upload.env" --rel
 check "--release-tooling compares the plugin version" "libworks plugin 0.1.0 (template: 0.2.0)" --release-tooling "$tmp/behind"
 refute "--release-tooling leaves the CI out" "ci.yml" --release-tooling "$tmp/behind"
 refute "--release-tooling leaves mise.toml out" "mise.toml" --release-tooling "$tmp/drifted"
+check "reports a mod without a Works tab listener" "no Works tab listener" "$tmp/tabless"
+check "reports a mod without CreativeTabTests" "no CreativeTabTests calling WorksTabCheck" "$tmp/tabless"
+check "reports a mod that does not require libworks" 'neoforge.mods.toml does not require libworks' "$tmp/tabless"
+refute "takes a listener outside WorksTabContents" "no Works tab listener" "$tmp/listed"
+check "reports a CreativeTabTests that does not call WorksTabCheck" "no CreativeTabTests calling WorksTabCheck" "$tmp/listed"
+check "reports a libworks dependency that is optional" "neoforge.mods.toml does not require libworks" "$tmp/optional"
+refute "--release-tooling leaves the Works tab out" "Works tab" --release-tooling "$tmp/tabless"
 
 exit $failed
