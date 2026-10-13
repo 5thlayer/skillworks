@@ -15,6 +15,11 @@
 #                                    are newer than it
 #   gametest-loop.sh --classpath     print the server's classpath, for a javac check without Gradle
 #
+# --tests <namespace:pattern>, with or without --reuse, runs only the tests it selects, e.g.
+# gearworks:solar_*: each run reads a copy of the build's program-args file with that selector in place
+# of the build's, so the build's own files are never edited. With a plugin older than
+# writeGameTestServerCommand, the one Gradle run still runs every test.
+#
 # Each run's log is build/gametest-loop/run<i>.log. The server exits with its number of failed required
 # tests. Exit 0 when every run passed, 1 when any run failed, crashed or timed out, 2 on a refusal.
 # GAMETEST_LOOP_TIMEOUT caps a direct run (default 600s).
@@ -22,12 +27,18 @@ set -euo pipefail
 
 fail() { echo "gametest-loop: $*" >&2; exit 2; }
 
-mode=loop
-case ${1:-} in
-    --reuse) mode=reuse; shift ;;
-    --classpath) mode=classpath; shift ;;
-esac
-runs="${1:-10}"
+mode=loop selector= runs=10
+while (($#)); do
+    case $1 in
+        --reuse) mode=reuse ;;
+        --classpath) mode=classpath ;;
+        --tests) (($# > 1)) || fail "--tests needs a selector, such as gearworks:solar_*."; selector=$2; shift ;;
+        *) runs=$1 ;;
+    esac
+    shift
+done
+[[ -z $selector || $selector =~ ^[a-z0-9_.-]+:[^[:space:]]+$ ]] \
+    || fail "--tests takes namespace:pattern, such as gearworks:solar_*, not \"$selector\"."
 [[ $runs =~ ^[1-9][0-9]*$ ]] || fail "runs must be a positive number, not \"$runs\"."
 per_run="${GAMETEST_LOOP_TIMEOUT:-600}"
 
@@ -38,16 +49,18 @@ cd "$root"
 state="$root/build/gametest-loop"
 cmd_file="$state/server.cmd" gradle_log="$state/gradle.log"
 written="$root/build/moddev/gameTestServerRunCommand.txt"
-# The server's identity: libworks' plugin passes it this checkout's own program-args file, and runs it in
-# run/gametest. Both together pick out this checkout's server, never the shell that searches for it.
+# The server's identity: libworks' plugin passes it this checkout's own program-args file, or --tests
+# the loop's copy of it, and runs it in run/gametest. Both together pick out this checkout's server,
+# never the shell that searches for it.
 args_arg="@$root/build/moddev/gameTestServerRunProgramArgs.txt"
+args_copy="$state/gameTestServerRunProgramArgs.txt"
 server_cwd="$root/run/gametest"
 
 servers() { # this checkout's running game-test servers, one pid a line
     local pid
     for pid in $(pgrep -f gameTestServerRunProgramArgs || true); do
         [[ $(readlink "/proc/$pid/cwd" 2> /dev/null) == "$server_cwd" ]] || continue
-        tr '\0' '\n' < "/proc/$pid/cmdline" 2> /dev/null | grep -qxF -- "$args_arg" && echo "$pid"
+        tr '\0' '\n' < "/proc/$pid/cmdline" 2> /dev/null | grep -qxF -e "$args_arg" -e "@$args_copy" && echo "$pid"
     done
     return 0
 }
@@ -128,6 +141,18 @@ if [[ $mode == loop ]]; then
 fi
 
 mapfile -t cmd < "$cmd_file"
+if [[ -n $selector ]]; then
+    # The build's program-args file with the selector in place of its own, the --tests it lacks added.
+    printf '%s\n' "${cmd[@]}" | grep -qxF -- "$args_arg" \
+        || fail "the server's command line passes no ${args_arg#@}, so --tests has nothing to replace; run without --tests."
+    [[ -f ${args_arg#@} ]] || fail "${args_arg#@} is missing; run without --reuse to rebuild through Gradle."
+    SEL=$selector awk 'prev == "--tests" { $0 = ENVIRON["SEL"]; done = 1 } { print; prev = $0 }
+        END { if (!done) { print "--tests"; print ENVIRON["SEL"] } }' "${args_arg#@}" > "$args_copy"
+    for i in "${!cmd[@]}"; do
+        if [[ ${cmd[i]} == "$args_arg" ]]; then cmd[i]="@$args_copy"; fi
+    done
+    echo "tests: $selector"
+fi
 # Where ModDevGradle runs the server, and the report's folder, both of which its Gradle task makes first.
 mkdir -p "$server_cwd" "$root/build/reports"
 cd "$server_cwd"

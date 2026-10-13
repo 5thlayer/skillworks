@@ -17,9 +17,19 @@ It builds with `./gradlew --no-daemon writeGameTestServerCommand`, which has lib
 
 It prints a line per run (`passed`, `<n> failed: <tests>`, `crashed`, `timed out`), then how many passed and, for each failed test, the runs it failed in. Report those last lines. The logs are in `build/gametest-loop/`: read a failed run's `run<i>.log` for the assertion. Exit 0 means every run passed, 1 that one did not, 2 a refusal: report the refusal and leave the cause to the user.
 
+## A subset of the tests
+
+To loop only some tests, such as the flaky ones under suspicion, pass a selector, `namespace:pattern`:
+
+```bash
+${CLAUDE_SKILL_DIR}/gametest-loop.sh --tests 'gearworks:solar_*' [runs]
+```
+
+Every run then reads `build/gametest-loop/gameTestServerRunProgramArgs.txt`, a copy of the build's program arguments with that selector in place of `<modId>:*`. Don't edit the files in `build/moddev` instead: a loop without `--tests` re-reads them every run. With a plugin older than `writeGameTestServerCommand`, the one run through Gradle still runs every test.
+
 ## After a change
 
-Edited sources need Gradle: run it again without `--reuse`, and it rebuilds. With nothing changed since the last build, `--reuse [runs]` skips Gradle; it refuses once `src/` or the build files are newer than that build.
+Edited sources need Gradle: run it again without `--reuse`, and it rebuilds. With nothing changed since the last build, `--reuse [runs]` skips Gradle, with or without `--tests`; it refuses once `src/` or the build files are newer than that build.
 
 To check that a file compiles without Gradle:
 
