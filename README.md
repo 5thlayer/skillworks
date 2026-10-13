@@ -11,6 +11,7 @@ claude plugin install skillworks@skillworks
 |---|---|
 | `all-done` | debrief the session's feature: what's done, tested and unclear, and a numbered list to check in game |
 | `quicklaunch` | open the dev client of the mod you're in, into its most recent save |
+| `gametest-loop` | run a mod's game tests many times over, with Gradle only once, to catch a flaky test |
 | `conductor` | run a change across several checkouts while other sessions work in them: hand-over, approval, exact pushes |
 | `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the mods load together, and release tooling drift |
 | `template-drift` | compare the mods' shared tooling and docs with libworks' template, and carry a template fix out to them |
