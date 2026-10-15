@@ -1,7 +1,7 @@
 {
   "name": "skillworks",
-  "version": "0.9.31",
-  "description": "Skills that act across the 5thlayer repos: the release train for the Modules and its status, keeping the mods level with libworks' template, launching a mod's dev client, looping its game tests, debriefing a session's work, and implementing and diagnosing work in a mod.",
+  "version": "0.10.0",
+  "description": "Skills that act across the 5thlayer repos: the release train for the Modules and its status, keeping the mods level with libworks' template, launching a mod's dev client, looping its game tests, stewarding a pull request to its merge, debriefing a session's work, and implementing and diagnosing work in a mod.",
   "author": {
     "name": "5thlayer",
     "url": "https://github.com/5thlayer"
@@ -16,6 +16,7 @@
     "./skills/quicklaunch",
     "./skills/release-status",
     "./skills/release-train",
+    "./skills/steward",
     "./skills/template-drift"
   ]
 }

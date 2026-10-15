@@ -16,6 +16,7 @@ claude plugin install skillworks@skillworks
 | `release-status` | see where the release train stands: versions, unpushed work, the Groundworks the mods load together, and release tooling drift |
 | `template-drift` | compare the mods' shared tooling and docs with libworks' template, and carry a template fix out to them |
 | `release-train` | release Groundworks, then Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks, moving the Groundworks the others require, and last the Showcase pack |
+| `steward` | drive a mod's open PR to green, through its review, and merge it once CI and `/code-review` are clean |
 | `implement` | implement a ticket, once its triage label says it's ready for an agent |
 | `diagnosing-bugs` | diagnose a hard bug or regression through a feedback loop that goes red on it |
 

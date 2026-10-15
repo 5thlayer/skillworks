@@ -14,7 +14,8 @@
 #
 # It also reports a mod without the template's Works tab: a listener on WorksTab.KEY, a CreativeTabTests
 # that calls WorksTabCheck, or the required libworks dependency in neoforge.mods.toml; --release-tooling
-# leaves these out.
+# leaves these out, as it does a CLAUDE.md that does not name the steward skill and a steward skill
+# of the mod's own.
 #
 # --release-tooling compares only what a release reads from the mod: the libworks plugin version
 # build.gradle applies, which carries the release and upload tasks, and upload.env.
@@ -66,6 +67,9 @@ for dir in "${checkouts[@]}"; do
         # The libworks entry's own lines, up to the next table.
         sed -n '/^ *modId *= *"libworks"/,/^ *\[/p' "$dir/src/main/resources/META-INF/neoforge.mods.toml" 2> /dev/null \
             | grep -qE '^ *type *= *"required"' || report+=("neoforge.mods.toml does not require libworks")
+        # The template's CLAUDE.md lets a session steward a PR under skillworks' steward skill, the one source of it.
+        grep -qF '`steward` skill' "$dir/CLAUDE.md" 2> /dev/null || report+=("CLAUDE.md does not name the steward skill")
+        [[ -e $dir/.claude/skills/steward ]] && report+=("has its own .claude/skills/steward, which hides skillworks' one")
     fi
     for f in "${files[@]}"; do
         [[ -f $template/$f ]] || continue

@@ -56,6 +56,7 @@ mod() { # <dir> <archives_name> <mod_name> <tag prefix> <class> [plugin version]
     echo 'tools' > "$d/mise.toml"
     echo 'Groundworks and Beltworks require Groundworks.' > "$d/nest.md"
     echo 'its own glossary' > "$d/GLOSSARY.md"
+    printf 'Nothing is pushed without the user'"'"'s word. Asking a session to steward a PR is the user'"'"'s word for it, under the `steward` skill.\n' > "$d/CLAUDE.md"
     local java="$d/src/main/java/io/github/_5thlayer/$2"
     mkdir -p "$java/gametest" "$d/src/main/resources/META-INF"
     printf 'if (event.getTabKey() != WorksTab.KEY) {\n    return;\n}\n' > "$java/WorksTabContents.java"
@@ -81,6 +82,10 @@ listed="$tmp/listed/src/main/java/io/github/_5thlayer/gearworks"
 rm "$listed/WorksTabContents.java"
 printf 'if (WorksTab.KEY == event.getTabKey()) return;\n' > "$listed/Gearworks.java"
 printf 'tests.test("no_item", 1, CreativeTabTests::noItem);\n' > "$listed/gametest/CreativeTabTests.java"
+mod selfled beltworks Beltworks "" Beltworks
+echo 'Commit on the current branch.' > "$tmp/selfled/CLAUDE.md"
+mkdir -p "$tmp/selfled/.claude/skills/steward"
+echo 'its own steward' > "$tmp/selfled/.claude/skills/steward/SKILL.md"
 
 check() { # <name> <expected substring> [args...]
     local name=$1 want=$2; shift 2
@@ -114,5 +119,8 @@ refute "takes a listener outside WorksTabContents" "no Works tab listener" "$tmp
 check "reports a CreativeTabTests that does not call WorksTabCheck" "no CreativeTabTests calling WorksTabCheck" "$tmp/listed"
 check "reports a libworks dependency that is optional" "neoforge.mods.toml does not require libworks" "$tmp/optional"
 refute "--release-tooling leaves the Works tab out" "Works tab" --release-tooling "$tmp/tabless"
+check "reports a CLAUDE.md without the steward line" "CLAUDE.md does not name the steward skill" "$tmp/selfled"
+check "reports a steward skill of the mod's own" "has its own .claude/skills/steward" "$tmp/selfled"
+refute "--release-tooling leaves steward out" "steward" --release-tooling "$tmp/selfled"
 
 exit $failed
