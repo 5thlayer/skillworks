@@ -19,7 +19,7 @@ Intended:
 - **Beltworks**: `upload.env` names the 1Password items without the template's line that every Module shares Beltworks' items, as their owner. `issue-tracker.md` passes `-R 5thlayer/beltworks` to every `gh` command, since its `upstream` remote is Rearth/SimpleBelts, and `LICENSE` licenses it per file. It has no `publishing.md`, since its projects predate the doc.
 - **Craftworks**: `upload.env`'s comment says Craftworks where the template says every Module. `issue-tracker.md`'s line on the GitHub MCP tools for cloud sessions without `gh`. No `publishing.md`, like Beltworks.
 - **Pipeworks**: `publishing.md` names its CurseForge project "5thlayer Pipeworks", since another mod holds Pipeworks there, and its icon and cover in `publish/`.
-- **Wireworks, Fieldworks**: a CI job, `textures`, that checks the committed textures against the script that builds them.
+- **Wireworks, Fieldworks, Gearworks**: a CI job, `textures`, that checks the committed textures against the script that builds them.
 - **Voidworks**: its `releases.md` says it names no projects "as Voidworks does", since the template's example is Voidworks itself.
 - **`docs/agents/releases.md`** everywhere, only for the mod's own paragraphs: what it requires or nests and how CI builds those tags, its own changelog sections and their ADR, its version history, and release checks of its own (Beltworks' ADR 0015). Every sentence the template also has keeps the template's wording, so the rest of the file is drift like any other.
 
