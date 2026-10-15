@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: MIT
 #
 # Each mod's shared files against libworks' template, 5thlayer/libworks on GitHub, as its
-# fill-template.sh leaves a new Library: the docs, config and CI every Library starts from, without the
+# fill-template.sh leaves a new Module: the docs, config and CI every Module starts from, without the
 # plugin, runtime and tooling tests libworks keeps, and with build.gradle and the CI pinned to the
 # released libworks plugin. The mod's names are read as the template's example ones (examplelib,
-# ExampleLib, Example Library), whether the mod renamed them or not. Per-mod files (build, changelog,
+# ExampleLib, Example Module), whether the mod renamed them or not. Per-mod files (build, changelog,
 # glossary, README, ADRs) are left out. The template's own text is read the same way, since it may name
 # a mod: Groundworks, as an example.
 #
@@ -34,7 +34,7 @@ git clone -q --depth 1 "${LIBWORKS:-https://github.com/5thlayer/libworks.git}" "
 # Filled under names no mod has, which read back as the example ones below.
 (cd "$template" && bash scripts/fill-template.sh drifttemplate DriftTemplate "Drift Template") > /dev/null 2>&1 \
     || { echo "drift: the template's fill-template.sh failed" >&2; exit 2; }
-filled='s/Drift Template/Example Library/g; s/drifttemplate/examplelib/g; s/DriftTemplate/ExampleLib/g'
+filled='s/Drift Template/Example Module/g; s/drifttemplate/examplelib/g; s/DriftTemplate/ExampleLib/g'
 
 if [[ -n $release_only ]]; then
     files=(publish/upload.env)
@@ -73,7 +73,7 @@ for dir in "${checkouts[@]}"; do
         if [[ $f == *.jar ]]; then cmp -s "$template/$f" "$dir/$f" || report+=("$f differs"); continue; fi
         # The display name first, since it is often the class name too; and each repo's tag prefix is its own.
         # Both sides read the mod's names as the example ones, so a mod the template names matches itself.
-        as_example=("${name:+s/$name \([0-9]\)/Example Library \1/g; s/= $name\$/= Example Library/;} ${artifact:+s/$artifact/examplelib/g; s/$class/ExampleLib/g}")
+        as_example=("${name:+s/$name \([0-9]\)/Example Module \1/g; s/= $name\$/= Example Module/;} ${artifact:+s/$artifact/examplelib/g; s/$class/ExampleLib/g}")
         n=$(diff -I '^tag=' <(sed "$filled" "$template/$f" | sed "${as_example[0]}") <(sed "${as_example[0]}" "$dir/$f") | grep -c '^[<>]')
         (( n > 0 )) && report+=("$f: $n lines differ")
     done

@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# drift.sh on a fixture template and mods: the template filled as a new Library, the example names
+# drift.sh on a fixture template and mods: the template filled as a new Module, the example names
 # read as a mod's own, the tag prefix ignored, and a changed or missing file, an older plugin and a
 # missing part of the Works tab reported.
 #
@@ -26,8 +26,8 @@ cd "$(dirname "$0")/.."
 git rm -rq plugin scripts/tests
 printf "plugins {\n    id 'io.github.5thlayer.libworks.module' version '0.2.0'\n}\n" > build.gradle
 printf 'uses: module-ci.yml@plugin-v0.2.0\n' > .github/workflows/ci.yml
-git grep -lI -e examplelib -e ExampleLib -e 'Example Library' -- . ':!scripts/fill-template.sh' | while read -r f; do
-    sed -i -e "s|examplelib|$1|g" -e "s|ExampleLib|$2|g" -e "s|Example Library|$3|g" "$f"
+git grep -lI -e examplelib -e ExampleLib -e 'Example Module' -- . ':!scripts/fill-template.sh' | while read -r f; do
+    sed -i -e "s|examplelib|$1|g" -e "s|ExampleLib|$2|g" -e "s|Example Module|$3|g" "$f"
 done
 git rm -q scripts/fill-template.sh
 FILL
@@ -36,7 +36,7 @@ echo 'standin' > "$lib/scripts/tests/standin.py"
 printf "plugins {\n    id 'io.github.5thlayer.libworks.module'\n}\n" > "$lib/build.gradle"
 echo 'uses: ./.github/workflows/module-ci.yml' > "$lib/.github/workflows/ci.yml"
 printf 'tag="v$version"\n# tokens for examplelib, ExampleLib\nTOKEN=op://x\n' > "$lib/publish/upload.env"
-printf 'mod_name = Example Library\nclass ExampleLib\nsite["Example Library 0.3.9"]\n' > "$lib/guide.md"
+printf 'mod_name = Example Module\nclass ExampleLib\nsite["Example Module 0.3.9"]\n' > "$lib/guide.md"
 echo 'changelog' > "$lib/CHANGELOG.md"
 echo 'tools' > "$lib/mise.toml"
 echo 'Groundworks and Beltworks require Groundworks.' > "$lib/nest.md"
@@ -63,7 +63,7 @@ mod() { # <dir> <archives_name> <mod_name> <tag prefix> <class> [plugin version]
     printf '[[dependencies.${mod_id}]]\nmodId = "libworks"\ntype = "required"\n' > "$d/src/main/resources/META-INF/neoforge.mods.toml"
 }
 mod renamed pipeworks Pipeworks pipeworks- Pipeworks
-mod kept examplelib "Example Library" "" ExampleLib
+mod kept examplelib "Example Module" "" ExampleLib
 mod named groundworks Groundworks "" Groundworks
 mod drifted wireworks Wireworks wireworks- Wireworks
 echo 'tools, an old fork' > "$tmp/drifted/mise.toml"
