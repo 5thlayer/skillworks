@@ -67,8 +67,16 @@ ENV="PATH=$tmp/nojava/bin:$PATH" check "mod: names mise's error when there is no
 ENV="PATH=$tmp/nojava/bin:$PATH JAVA_HOME=$tmp/java" check "mod: takes JAVA_HOME over the java on PATH" 0 \
     "root: $mod" "$mod"
 
+# The Showcase's own launcher picks the save and refuses a second game; quicklaunch hands it the save.
+show="$tmp/showcase"
+mkdir -p "$show/scripts"; git -C "$show" init -q; touch "$show/pack.toml"
+printf '%s\n' 'import sys' 'print("launcher got", sys.argv[1:])' > "$show/scripts/launch.py"
+check "showcase: takes pack.toml beside scripts/launch.py" 0 "root: $show" "$show"
+check "showcase: dry-runs its launcher" 0 "launcher got ['--dry-run']"$'\n' "$show"
+check "showcase: hands its launcher the save, one argument" 0 "launcher got ['--dry-run', 'New World']"$'\n' "$show" "New World"
+
 none="$tmp/none"
 mkdir -p "$none"; git -C "$none" init -q
-check "refuses a repo that is not a mod repo" 1 "is not a mod repo" "$none"
+check "refuses a repo that is neither a mod repo nor the Showcase" 1 "is not a mod repo nor the Showcase" "$none"
 
 exit $failed

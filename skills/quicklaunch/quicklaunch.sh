@@ -2,9 +2,12 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# Launch the dev client of the mod repo the working directory is in (a Gradle build whose client run
-# takes -PquickPlay, as libworks' convention plugin's does), into its most recent save, unless a client
-# is already running.
+# Launch the game for the checkout the working directory is in, into its most recent save, unless a
+# client is already running:
+#   - a mod repo (a Gradle build whose client run takes -PquickPlay, as libworks' convention plugin's
+#     does) opens its dev client;
+#   - the Showcase (pack.toml beside scripts/launch.py) opens its CurseForge profile with the local
+#     builds of the mods beside it, through its own launcher, which refuses while that game runs.
 #
 #   quicklaunch.sh [--dry-run] [save name]
 #
@@ -22,7 +25,33 @@ fail() { echo "quicklaunch: $*" >&2; exit 1; }
 root="$(git rev-parse --show-toplevel 2> /dev/null)" || fail "not in a git checkout."
 cd "$root"
 
-[[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo."
+new_log() { echo "${QUICKLAUNCH_LOG:-$(mktemp -t quicklaunch.XXXXXX.log)}"; }
+
+# The Showcase's launcher finds its profile, picks the save, syncs the profile and refuses a second game.
+if [[ -f pack.toml && -f scripts/launch.py ]]; then
+    if [[ -n $dry ]]; then
+        echo "root: $root"
+        echo "run: python3 scripts/launch.py${save:+ $(printf '%q' "$save")}"
+        exec python3 scripts/launch.py --dry-run ${save:+"$save"}
+    fi
+    log="$(new_log)"
+    nohup python3 scripts/launch.py ${save:+"$save"} > "$log" 2>&1 &
+    game=$!
+    for _ in $(seq 1 300); do
+        if grep -aq "Sound engine started" "$log"; then
+            echo "Showcase up, $(grep -a -m1 '^save: ' "$log" | sed 's/^save: //'); log: $log"
+            exit 0
+        fi
+        if ! kill -0 "$game" 2> /dev/null; then
+            grep -a '^launch: ' "$log" >&2 || tail -20 "$log" >&2
+            fail "the Showcase did not start; log: $log"
+        fi
+        sleep 1
+    done
+    fail "the Showcase is not up after 300s; log: $log"
+fi
+
+[[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo nor the Showcase."
 # libworks' convention plugin adds the hook to the client run of every build that applies it.
 grep -qE "id ['\"]io\.github\.5thlayer\.libworks\.module['\"]|gradleProperty\(['\"]quickPlay" build.gradle \
     || fail "build.gradle has no -PquickPlay hook on its client run; apply libworks' convention plugin, io.github.5thlayer.libworks.module."
@@ -64,7 +93,7 @@ clients="$(pgrep -f "$running" | paste -sd, - || true)"
 [[ -n $clients ]] && fail "a client is already running (pid $clients); close the game first."
 
 [[ -z $save ]] && echo "quicklaunch: no save found; launching to the menu." >&2
-log="${QUICKLAUNCH_LOG:-$(mktemp -t quicklaunch).log}"
+log="$(new_log)"
 
 nohup "${run[@]}" > "$log" 2>&1 &
 gradle=$!
