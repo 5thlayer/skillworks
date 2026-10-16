@@ -10,8 +10,10 @@ Read each ticket's labels first (`docs/agents/triage-labels.md`). A ticket witho
 
 Use /tdd where possible, at pre-agreed seams.
 
-Run typechecking regularly, single test files regularly, and the full test suite once at the end.
+Run typechecking regularly, single test files regularly, and the work's own tests together at the end: its game tests share a name prefix, so one `gametest-loop` selector runs them all. The whole suite runs at the end of iterating.
 
 Once done, use /code-review to review the work.
 
 Commit your work to the current branch.
+
+Then iterate: follow `${CLAUDE_SKILL_DIR}/../iterate/SKILL.md` from its first round, as if the user had typed `/iterate`.

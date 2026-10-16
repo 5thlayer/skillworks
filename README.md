@@ -17,10 +17,11 @@ claude plugin install skillworks@skillworks
 | `template-drift` | compare the mods' shared tooling and docs with libworks' template, and carry a template fix out to them |
 | `release-train` | release Groundworks, then Beltworks, Pipeworks, Wireworks, Craftworks and Fieldworks, moving the Groundworks the others require, and last the Showcase pack |
 | `steward` | drive a mod's open PR to green, through its review, and merge it once CI and `/code-review` are clean |
-| `implement` | implement a ticket, once its triage label says it's ready for an agent |
+| `implement` | implement a ticket, once its triage label says it's ready for an agent, and go on to iterate |
+| `iterate` | refine a feature against its own tests alone until you say it's done, then run the whole suite before the merge |
 | `diagnosing-bugs` | diagnose a hard bug or regression through a feedback loop that goes red on it |
 
-`implement` and `diagnosing-bugs` are Matt Pocock's ([mattpocock/skills](https://github.com/mattpocock/skills), MIT), each with a line of ours.
+`implement` and `diagnosing-bugs` are Matt Pocock's ([mattpocock/skills](https://github.com/mattpocock/skills), MIT), each with lines of ours: `implement` defers the whole suite to the end of iterating.
 
 The terms the skills share are in [CONTEXT.md](CONTEXT.md).
 
