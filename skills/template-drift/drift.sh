@@ -20,6 +20,8 @@
 # --release-tooling compares only what a release reads from the mod: the libworks plugin version
 # build.gradle applies, which carries the release and upload tasks, and upload.env.
 # With no checkout, it takes Groundworks, Beltworks, Wireworks, Craftworks, Pipeworks, Fieldworks, Voidworks and Gearworks.
+# NOTICE is compared only as far as the template's runs, the preamble every Module keeps above its own
+# credits.
 # It prints, per checkout, "same", or the plugin version it applies against the template's, each part
 # of the Works tab it lacks, and each file that differs (with its line count) or is missing.
 # LIBWORKS points it at a local template checkout, at its last commit, instead of a fresh clone.
@@ -78,7 +80,8 @@ for dir in "${checkouts[@]}"; do
         # The display name first, since it is often the class name too; and each repo's tag prefix is its own.
         # Both sides read the mod's names as the example ones, so a mod the template names matches itself.
         as_example=("${name:+s/$name \([0-9]\)/Example Module \1/g; s/= $name\$/= Example Module/;} ${artifact:+s/$artifact/examplelib/g; s/$class/ExampleLib/g}")
-        n=$(diff -I '^tag=' <(sed "$filled" "$template/$f" | sed "${as_example[0]}") <(sed "${as_example[0]}" "$dir/$f") | grep -c '^[<>]')
+        lines=; [[ $f == NOTICE ]] && lines=$(wc -l < "$template/$f")
+        n=$(diff -I '^tag=' <(sed "$filled" "$template/$f" | sed "${as_example[0]}") <(sed "${as_example[0]}${lines:+;${lines}q}" "$dir/$f") | grep -c '^[<>]')
         (( n > 0 )) && report+=("$f: $n lines differ")
     done
     echo "== $(basename "$dir")"
