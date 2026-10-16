@@ -16,8 +16,8 @@ A difference is either **intended**, one of those below, or **drift**. For anyth
 Intended:
 
 - **Groundworks**: no Works tab, so no listener, `CreativeTabTests` or `libworks` dependency, since it has no items for the tab.
-- **Beltworks**: `upload.env` names the 1Password items without the template's line that every Module shares Beltworks' items, as their owner. `issue-tracker.md` passes `-R 5thlayer/beltworks` to every `gh` command, since its `upstream` remote is Rearth/SimpleBelts, and `LICENSE` licenses it per file. It has no `publishing.md`, since its projects predate the doc.
-- **Craftworks**: `upload.env`'s comment says Craftworks where the template says every Module. `issue-tracker.md`'s line on the GitHub MCP tools for cloud sessions without `gh`. No `publishing.md`, like Beltworks.
+- **Beltworks**: `upload.env` names the 1Password items without the template's line that every Module shares Beltworks' items, as their owner. `issue-tracker.md` passes `-R 5thlayer/beltworks` to every `gh` command, since its `upstream` remote is Rearth/SimpleBelts, and `LICENSE` licenses it per file. `publishing.md` names its icon and cover in `publish/`, as Pipeworks' does.
+- **Craftworks**: `upload.env`'s comment says Craftworks where the template says every Module. `issue-tracker.md`'s line on the GitHub MCP tools for cloud sessions without `gh`. `publishing.md`'s icon and cover, like Beltworks'.
 - **Pipeworks**: `publishing.md` names its CurseForge project "5thlayer Pipeworks", since another mod holds Pipeworks there, and its icon and cover in `publish/`.
 - **Wireworks, Fieldworks, Gearworks**: a CI job, `textures`, that checks the committed textures against the script that builds them.
 - **Voidworks**: its `releases.md` says it names no projects "as Voidworks does", since the template's example is Voidworks itself.
