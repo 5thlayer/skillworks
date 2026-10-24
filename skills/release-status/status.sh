@@ -3,10 +3,11 @@
 # SPDX-License-Identifier: MIT
 #
 # The release train's state, for Groundworks and the mods on it (Beltworks, Pipeworks, Wireworks,
-# Craftworks, Fieldworks): each
+# Craftworks, Fieldworks), and for Gearworks and Voidworks, which require no Groundworks: each
 # car's version, what ~/.m2 holds, what isn't pushed, the Groundworks each car requires, whether the
 # newest cars in ~/.m2 load a Groundworks every one accepts, and the release tooling against
-# libworks' template.
+# libworks' template. For Gearworks and Voidworks, also their upstreams and the jar the Showcase pins
+# beside their newest tag.
 # It changes nothing but fetches.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -15,6 +16,9 @@ m2="${MAVEN_REPO_LOCAL:-$HOME/.m2/repository}/io/github/5thlayer"
 gw="$HOME/minecraft_mods/groundworks"
 # The mods that require Groundworks, which release after it in any order.
 mods=(Beltworks Pipeworks Wireworks Craftworks Fieldworks)
+# The mods that require no Groundworks, which release on their own.
+others=(Gearworks Voidworks)
+showcase="$HOME/minecraft_mods/factoryworks-showcase"
 
 car() { # <name> <checkout> [artifact]
     local name=$1 dir=$2 artifact=${3:-}
@@ -46,8 +50,31 @@ requires_groundworks() { # <checkout>: the range in its libworks { upstream('gro
     echo "  requires Groundworks: $range"
 }
 
+upstreams() { # <checkout>: each libworks { upstream('<name>') { optional, range } } in its build.gradle
+    awk -v q="['\"]" '
+        $0 ~ "upstream\\(" q { name = $0; sub(".*upstream\\(" q, "", name); sub(q ".*", "", name); on = 1; opt = ""; range = "any" }
+        on && /optional *= *true/ { opt = ", optional" }
+        on && /range *=/ { range = $0; sub(".*range *= *" q, "", range); sub(q ".*", "", range) }
+        on && /}/ { print "  upstream " name ": " range opt; on = 0; n++ }
+        END { if (!n) print "  upstreams: none" }' "$1/build.gradle"
+}
+
+pinned() { # <checkout> <artifact>: the jar the Showcase pins, beside the checkout's newest tag
+    local toml jar tag
+    toml=$(grep -l "^filename = \"$2-[0-9]" "$showcase"/mods/*.pw.toml 2> /dev/null | head -1)
+    jar=$(sed -n 's/^filename = "\(.*\)"/\1/p' "$toml" 2> /dev/null)
+    tag=$(git -C "$1" tag -l --sort=-v:refname | head -1)
+    if [[ -z $jar ]]; then
+        echo "  Showcase: not in the pack; newest tag ${tag:-none}"
+    elif [[ -n $tag && $jar != "$2-${tag##*v}.jar" ]]; then
+        echo "  Showcase: pins $jar ($(basename "$toml")); newest tag $tag isn't in the pack"
+    else
+        echo "  Showcase: pins $jar ($(basename "$toml")); newest tag ${tag:-none}"
+    fi
+}
+
 dirs=("$gw") artifacts=(groundworks)
-for name in "${mods[@]}"; do
+for name in "${mods[@]}" "${others[@]}"; do
     # Lowercased with tr, not ${name,,}: macOS's bash is 3.2.
     checkout=$(tr '[:upper:]' '[:lower:]' <<< "$name") dir="$HOME/minecraft_mods/$checkout"
     # A mod's artifact is its archives_name; until it has one, assume its checkout's name.
@@ -55,7 +82,12 @@ for name in "${mods[@]}"; do
     artifact=${artifact:-$checkout}
     dirs+=("$dir") artifacts+=("$artifact")
     car "$name" "$dir" "$artifact"
-    requires_groundworks "$dir"
+    if [[ " ${mods[*]} " == *" $name "* ]]; then
+        requires_groundworks "$dir"
+    else
+        upstreams "$dir"
+        pinned "$dir" "$artifact"
+    fi
 done
 
 # Release tooling that drifts from libworks' template misses its fixes: a car on an older libworks plugin

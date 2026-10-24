@@ -1,6 +1,6 @@
 {
   "name": "skillworks",
-  "version": "0.11.3",
+  "version": "0.11.4",
   "description": "Skills that act across the 5thlayer repos: the release train for the Modules and its status, keeping the mods level with libworks' template, launching a mod's dev client, looping its game tests, stewarding a pull request to its merge, debriefing a session's work, and implementing, iterating on and diagnosing work in a mod.",
   "author": {
     "name": "5thlayer",
