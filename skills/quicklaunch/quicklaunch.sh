@@ -4,10 +4,11 @@
 #
 # Launch the game for the checkout the working directory is in, into its most recent save, unless a
 # client is already running:
+#   - a packwiz pack (a pack.toml at or above the working directory, or the one folder under the repo
+#     root that has one) opens its CurseForge profile, with the local builds of the mods beside the repo,
+#     through launch_pack.py, which refuses while that game runs;
 #   - a mod repo (a Gradle build whose client run takes -PquickPlay, as libworks' convention plugin's
-#     does) opens its dev client;
-#   - the Showcase (pack.toml beside scripts/launch.py) opens its CurseForge profile with the local
-#     builds of the mods beside it, through its own launcher, which refuses while that game runs.
+#     does) opens its dev client.
 #
 #   quicklaunch.sh [--dry-run] [save name]
 #
@@ -22,36 +23,60 @@ save="${1:-}"
 
 fail() { echo "quicklaunch: $*" >&2; exit 1; }
 
+start="$(pwd -P)"
 root="$(git rev-parse --show-toplevel 2> /dev/null)" || fail "not in a git checkout."
 cd "$root"
 
 new_log() { echo "${QUICKLAUNCH_LOG:-$(mktemp -t quicklaunch.XXXXXX.log)}"; }
 
-# The Showcase's launcher finds its profile, picks the save, syncs the profile and refuses a second game.
-if [[ -f pack.toml && -f scripts/launch.py ]]; then
+here="$(dirname "$(readlink -f "$0")")"
+
+is_pack() { [[ -f $1/pack.toml ]] && grep -q '^pack-format = "packwiz:' "$1/pack.toml"; }
+
+# The pack the working directory is in, or the one folder under the repo root with a pack.toml.
+pack=
+dir="$start"
+while :; do
+    is_pack "$dir" && { pack="$dir"; break; }
+    [[ $dir == "$root" || $dir == / ]] && break
+    dir="$(dirname "$dir")"
+done
+if [[ -z $pack ]]; then
+    packs=()
+    for dir in "$root"/*/; do is_pack "${dir%/}" && packs+=("${dir%/}"); done
+    if ((${#packs[@]} > 1)); then
+        fail "$root has several packs; run from inside one: $(printf '%s ' "${packs[@]#"$root"/}" | sed 's/ $//')."
+    fi
+    ((${#packs[@]} == 1)) && pack="${packs[0]}"
+fi
+
+# launch_pack.py finds the pack's profile, picks the save, syncs the profile and refuses a second game.
+if [[ -n $pack ]]; then
+    run=(python3 "$here/launch_pack.py" --pack "$pack" --beside "$(dirname "$root")")
     if [[ -n $dry ]]; then
         echo "root: $root"
-        echo "run: python3 scripts/launch.py${save:+ $(printf '%q' "$save")}"
-        exec python3 scripts/launch.py --dry-run ${save:+"$save"}
+        echo "pack: $pack"
+        echo "run: $(printf '%q ' "${run[@]}" ${save:+"$save"} | sed 's/ $//')"
+        exec "${run[@]}" --dry-run ${save:+"$save"}
     fi
     log="$(new_log)"
-    nohup python3 scripts/launch.py ${save:+"$save"} > "$log" 2>&1 &
+    nohup "${run[@]}" ${save:+"$save"} > "$log" 2>&1 &
     game=$!
     for _ in $(seq 1 300); do
         if grep -aq "Sound engine started" "$log"; then
-            echo "Showcase up, $(grep -a -m1 '^save: ' "$log" | sed 's/^save: //'); log: $log"
+            echo "$(sed -n 's/^name = "\(.*\)"/\1/p' "$pack/pack.toml") up, $(grep -a -m1 '^save: ' "$log" | sed 's/^save: //'); log: $log"
             exit 0
         fi
         if ! kill -0 "$game" 2> /dev/null; then
             grep -a '^launch: ' "$log" >&2 || tail -20 "$log" >&2
-            fail "the Showcase did not start; log: $log"
+            fail "the pack did not start; log: $log"
         fi
         sleep 1
     done
-    fail "the Showcase is not up after 300s; log: $log"
+    fail "the pack is not up after 300s; log: $log"
 fi
 
-[[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo nor the Showcase."
+[[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo nor a packwiz pack."
 # libworks' convention plugin adds the hook to the client run of every build that applies it.
 grep -qE "id ['\"]io\.github\.5thlayer\.libworks\.module['\"]|gradleProperty\(['\"]quickPlay" build.gradle \
     || fail "build.gradle has no -PquickPlay hook on its client run; apply libworks' convention plugin, io.github.5thlayer.libworks.module."
