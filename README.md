@@ -23,7 +23,7 @@ claude plugin install skillworks@skillworks
 
 `implement` and `diagnosing-bugs` are Matt Pocock's ([mattpocock/skills](https://github.com/mattpocock/skills), MIT), each with lines of ours: `implement` defers the whole suite to the end of iterating.
 
-The terms the skills share are in [CONTEXT.md](CONTEXT.md).
+The terms the skills share are in [GLOSSARY.md](GLOSSARY.md).
 
 ## Publishing a change
 
