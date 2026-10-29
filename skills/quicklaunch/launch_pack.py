@@ -3,15 +3,18 @@
 # SPDX-License-Identifier: MIT
 #
 # Plays a packwiz pack as its checkout stands, in the CurseForge profile it was imported into, with the
-# local builds of the mods whose checkouts sit beside the repo: no export, no zip, no copying by hand.
+# local builds of the mods whose checkouts sit beside the repo, or that are built inside it: no export,
+# no zip, no copying by hand.
 #
-#   launch_pack.py --pack <dir with pack.toml> [--dry-run] [--released] [save]
+#   launch_pack.py --pack <dir with pack.toml> [--repo <dir>] [--beside <dir>] [--dry-run] [--released] [save]
 #
 # Before each launch it brings the profile up to the checkout and the mod checkouts beside it:
 #   - every file index.toml lists outside mods/ (configs, kubejs/) is copied in, so a change to the
 #     pack's own files shows without an export;
-#   - a mod whose checkout sits beside the repo, ../<mod id>, with a jar in build/libs at the pack's
-#     version or later, takes the place of the pack's jar. The pack's jar is set aside in
+#   - a mod with a jar at the pack's version or later takes the place of the pack's jar, from the
+#     checkout beside the main checkout, <beside>/<mod id>/build/libs (a worktree's parent is
+#     .claude/worktrees/, where no mod checkouts are), or from a mod build inside the pack's repo, such
+#     as a companion mod, matched by the mod id its jar declares. The newest such jar wins. The pack's jar is set aside in
 #     .quicklaunch-local/ and put back on the next run, so --released plays the pack as CurseForge has it.
 # It then starts the game the way CurseForge would, from its Install/ folder and bundled Java, on the
 # loader the profile names (Forge or NeoForge), offline as the profile's last player, or Dev, into the
@@ -31,6 +34,9 @@ import sys
 import tomllib
 import zipfile
 from pathlib import Path
+
+sys.dont_write_bytecode = True  # no __pycache__ in the skill's folder
+from targets import walk  # noqa: E402
 
 CURSEFORGE_SETTINGS = Path.home() / ".config/CurseForge/storage.json"
 SET_ASIDE = ".quicklaunch-local"
@@ -108,14 +114,35 @@ def version_key(version):
     return tuple(int(n) for n in re.findall(r"\d+", version))
 
 
-def local_build(beside, mod):
-    """The newest jar the checkout beside the repo, <beside>/<mod>, built, if it builds that mod."""
-    libs = beside / mod / "build" / "libs"
-    jars = [j for j in libs.glob("*.jar") if not j.name.endswith("-sources.jar")] if libs.is_dir() else []
-    for jar in sorted(jars, key=lambda j: j.stat().st_mtime, reverse=True):
-        if (found := jar_mod(jar)) and found[0] == mod:
-            return jar, found[1]
-    return None
+def built_jars(libs):
+    return [j for j in libs.glob("*.jar") if not j.name.endswith("-sources.jar")] if libs.is_dir() else []
+
+
+def repo_builds(repo):
+    """Each mod id the Gradle builds inside the repo built a jar of, with those jars."""
+    builds = {}
+    for folder in walk(repo):
+        if (folder / "build.gradle").is_file():
+            for jar in built_jars(folder / "build" / "libs"):
+                if found := jar_mod(jar):
+                    builds.setdefault(found[0], []).append((jar, found[1]))
+    return builds
+
+
+def local_build(beside, in_repo, mod):
+    """The newest jar of the mod: built by its checkout beside the main checkout, or inside the repo."""
+    found = list(in_repo.get(mod, []))
+    for jar in built_jars(beside / mod / "build" / "libs"):
+        if (declared := jar_mod(jar)) and declared[0] == mod:
+            found.append((jar, declared[1]))
+    return max(found, key=lambda j: j[0].stat().st_mtime, default=None)
+
+
+def shown(path, *bases):
+    for base in bases:
+        if path.is_relative_to(base):
+            return str(path.relative_to(base))
+    return str(path)
 
 
 def put_back(game):
@@ -136,7 +163,7 @@ def file_hash(path, algorithm):
     return hashlib.new(algorithm, path.read_bytes()).hexdigest()
 
 
-def sync(pack_dir, pack, game, beside, released, dry):
+def sync(pack_dir, pack, game, beside, repo, released, dry):
     if not dry:
         put_back(game)
     index_meta = pack.get("index", {})
@@ -159,14 +186,15 @@ def sync(pack_dir, pack, game, beside, released, dry):
         note("mods: as the pack has them (--released)")
         return
     installed = []
+    in_repo = repo_builds(repo)
     for jar in sorted((game / "mods").glob("*.jar")):
         if not (declared := jar_mod(jar)):
             continue
         mod, version = declared
-        if not (local := local_build(beside, mod)) or version_key(local[1]) < version_key(version):
+        if not (local := local_build(beside, in_repo, mod)) or version_key(local[1]) < version_key(version):
             continue
         name = f"{local[0].stem}-local.jar"
-        note(f"mods: {mod} {version} -> local {local[1]} ({local[0].relative_to(beside)})")
+        note(f"mods: {mod} {version} -> local {local[1]} ({shown(local[0], repo, beside)})")
         if not dry:
             (game / SET_ASIDE).mkdir(exist_ok=True)
             shutil.move(jar, game / SET_ASIDE / jar.name)
@@ -308,7 +336,8 @@ def command(game, pack, save):
 def main():
     parser = argparse.ArgumentParser(description="Play a packwiz pack as the checkout stands, with local mod builds.")
     parser.add_argument("--pack", type=Path, default=Path.cwd(), help="the folder with pack.toml")
-    parser.add_argument("--beside", type=Path, help="where the mod checkouts are; the pack's repo's parent by default")
+    parser.add_argument("--repo", type=Path, help="the checkout to take mod builds from; the pack's git root by default")
+    parser.add_argument("--beside", type=Path, help="where the mod checkouts are; the main checkout's parent by default")
     parser.add_argument("--dry-run", action="store_true", help="say what it would copy, swap and run; change nothing")
     parser.add_argument("--released", action="store_true", help="play the pack's own mod jars, no local builds")
     parser.add_argument("save", nargs="?", help="the save to open; the most recent by default")
@@ -319,10 +348,12 @@ def main():
         pack = tomllib.loads((pack_dir / "pack.toml").read_text())
     except OSError:
         fail(f"no pack.toml in {pack_dir}.")
-    if not (beside := args.beside):
-        top = subprocess.run(["git", "-C", str(pack_dir), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
-        beside = Path(top.stdout.strip()).parent if top.returncode == 0 else pack_dir.parent
-    beside = beside.resolve()
+    git = subprocess.run(["git", "-C", str(pack_dir), "rev-parse", "--path-format=absolute", "--show-toplevel",
+                          "--git-common-dir"], capture_output=True, text=True)
+    top, common = (Path(line) for line in git.stdout.split("\n")[:2]) if git.returncode == 0 else (pack_dir, pack_dir / ".git")
+    repo = (args.repo or top).resolve()
+    # A worktree's root sits in .claude/worktrees/; the mod checkouts sit beside the main checkout.
+    beside = (args.beside or common.parent.parent).resolve()
 
     game = instance(pack)
     running = subprocess.run(["pgrep", "-f", "--", f"--gameDir {game}"], capture_output=True, text=True).stdout.split()
@@ -336,7 +367,7 @@ def main():
         latest = sorted(saves.glob("*/level.dat"), key=lambda p: p.stat().st_mtime)
         save = latest[-1].parent.name if latest else None
 
-    sync(pack_dir, pack, game, beside, args.released, args.dry_run)
+    sync(pack_dir, pack, game, beside, repo, args.released, args.dry_run)
     cmd, name, quick_play = command(game, pack, save)
     note(f"profile: {game}")
     if save and not quick_play:
