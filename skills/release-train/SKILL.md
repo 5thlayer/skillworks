@@ -15,7 +15,7 @@ Groundworks goes first, then Beltworks, Pipeworks, Wireworks, Craftworks and Fie
 | Beltworks | `~/minecraft_mods/beltworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `beltworks-v<version>` | `docs/agents/releases.md` |
 | Pipeworks | `~/minecraft_mods/pipeworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `pipeworks-v<version>` | `docs/agents/releases.md` |
 | Wireworks | `~/minecraft_mods/wireworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `wireworks-v<version>` | `docs/agents/releases.md` |
-| Craftworks | `~/minecraft_mods/craftworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `v<version>` | `docs/agents/releases.md` |
+| Craftworks | `~/minecraft_mods/craftworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `craftworks-v<version>` (`v<version>` up to 0.11.1) | `docs/agents/releases.md` |
 | Fieldworks | `~/minecraft_mods/fieldworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `fieldworks-v<version>` | `docs/agents/releases.md` |
 | Gearworks | `~/minecraft_mods/gearworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `gearworks-v<version>` | `docs/agents/releases.md` |
 | Voidworks | `~/minecraft_mods/voidworks` | `sh ./gradlew release -PreleaseVersion=<version>`; tags `voidworks-v<version>` | `docs/agents/releases.md` |
