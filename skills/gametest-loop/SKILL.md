@@ -7,7 +7,7 @@ description: Run a 5thlayer mod's game tests many times over, with Gradle only o
 
 Gradle runs once; every further run starts the game-test server JVM directly. A loop through `./gradlew` holds a Gradle client and daemon for its whole length, and other projects' sessions on this machine wait on those slots.
 
-From anywhere in the mod's checkout, in the background (a run takes about 25–70 s):
+From the mod's folder or anywhere below it, in the background (a run takes about 25–70 s). The mod is the nearest folder up from there, at most up to the checkout's root, that holds `gradlew` and `build.gradle`, so a mod inside another repo, such as a modpack's companion mod, works too; `build/` and `src/` below mean that folder's:
 
 ```bash
 ${CLAUDE_SKILL_DIR}/gametest-loop.sh [runs]
@@ -45,4 +45,4 @@ javac -proc:none -d <scratchpad>/classes -cp "$(${CLAUDE_SKILL_DIR}/gametest-loo
 
 To stop the loop, stop its background task: the script then stops the Gradle build or server it started. Stop a process yourself only once you've proved this session owns it: its parent chain leads to this session's own claude process, or its cwd is this checkout. A matching command line is no proof: another session's server or shell matches the same pattern, and a kill on a pattern match once cut off another Claude session's background work. Daemons are shared by every checkout of their Gradle version, so `./gradlew --stop` stops other sessions' builds: leave daemons to the user.
 
-`${CLAUDE_SKILL_DIR}/test.sh` checks the loop on fixture repos with a fake server.
+`${CLAUDE_SKILL_DIR}/test.sh` checks the loop on fixture repos with a fake server, one with its mod below the checkout's root.

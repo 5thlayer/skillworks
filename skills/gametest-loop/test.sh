@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# The loop on a fixture repo whose gradlew stands in for libworks' plugin, a current one that writes the
+# The loop on a fixture repo, and on the same mod below a checkout's root, whose gradlew stands in for libworks' plugin, a current one that writes the
 # game-test server's command line or an older one that only runs the server, and whose server is fake:
 # where it gets the command line, how it reads each run, when it skips or refuses Gradle, which tests
 # --tests selects, and what it refuses. It runs no Gradle and no Minecraft.
@@ -169,6 +169,26 @@ kill %1 2> /dev/null; wait 2> /dev/null
 sleep 0.2
 check "refuses while a server of the checkout runs a selector" 2 "is already running" 1
 kill %1 2> /dev/null; wait 2> /dev/null
+
+# A mod below its checkout's root, as a modpack's companion mod sits in the pack's repo: the same fixture
+# in pack/mod of a checkout whose root holds no gradlew.
+pack="$tmp/pack"; nested="$pack/pack/mod"
+mkdir -p "$nested/src/main"; git -C "$pack" init -q; cp "$mod/build.gradle" "$nested/"
+sed "s|$mod/|$nested/|g" "$mod/gradlew" > "$nested/gradlew"; chmod +x "$nested/gradlew"
+touch -t 202601010000 "$nested/src/main/A.java" "$nested/build.gradle"
+mod="$nested"
+results=(pass pass)
+check "a mod below its checkout's root: builds and runs it" 0 "2 of 2 direct runs passed" 2
+calls "a mod below its checkout's root: one Gradle build" "--no-daemon --console=plain writeGameTestServerCommand"
+[[ -f $nested/build/gametest-loop/server.cmd && ! -e $pack/build ]] \
+    && echo "ok   a mod below its checkout's root: its state is in the mod's build, not the checkout's" \
+    || { echo "FAIL nested state:"; find "$pack" -path '*/build/*' -type f; failed=1; }
+check "a mod below its checkout's root: --reuse" 0 "1 of 1 direct runs passed" --reuse 1
+touch "$nested/src/main/A.java"
+check "a mod below its checkout's root: --reuse refuses its newer sources" 2 "src/main/A.java changed since the build" --reuse
+got="$(cd "$pack/pack" && "$loop" 2>&1)"; code=$?
+[[ $code == 2 && $got == *"$pack is not a mod repo"* ]] && echo "ok   refuses above the mod, at the checkout's root" \
+    || { echo "FAIL above the mod: exit $code: $got"; failed=1; }
 
 bare="$tmp/bare"; mkdir -p "$bare"; git -C "$bare" init -q
 got="$(cd "$bare" && "$loop" 2>&1)"; code=$?

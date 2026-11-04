@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 5thlayer
 # SPDX-License-Identifier: MIT
 #
-# Run the game tests of the mod repo the working directory is in many times over, with Gradle only once.
+# Run the game tests of the mod the working directory is in many times over, with Gradle only once.
 # One build compiles the mod and yields the game-test server JVM's command line; every run then starts
 # that JVM directly, so the loop holds no Gradle client, daemon or slot that other checkouts' builds need.
 # The command line comes from libworks' plugin, whose writeGameTestServerCommand task writes it to
@@ -49,9 +49,16 @@ done
 [[ $runs =~ ^[1-9][0-9]*$ ]] || fail "runs must be a positive number, not \"$runs\"."
 per_run="${GAMETEST_LOOP_TIMEOUT:-600}"
 
-root="$(git rev-parse --show-toplevel 2> /dev/null)" || fail "not in a git checkout."
+# The mod is the nearest folder up from here that holds gradlew and build.gradle, its checkout's root
+# or a folder inside it, such as a modpack's companion mod in the pack's repo.
+top="$(git rev-parse --show-toplevel 2> /dev/null)" || fail "not in a git checkout."
+root="$(pwd -P)"
+until [[ -f $root/gradlew && -f $root/build.gradle ]]; do
+    [[ $root != "$top" && $root != / ]] \
+        || fail "$top is not a mod repo: no folder from $(pwd -P) up to it holds gradlew and build.gradle."
+    root="$(dirname "$root")"
+done
 cd "$root"
-[[ -f gradlew && -f build.gradle ]] || fail "$root is not a mod repo."
 
 state="$root/build/gametest-loop"
 cmd_file="$state/server.cmd" gradle_log="$state/gradle.log"
