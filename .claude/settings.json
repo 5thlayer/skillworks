@@ -1,0 +1,21 @@
+{
+  "extraKnownMarketplaces": {
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      },
+      "autoUpdate": true
+    },
+    "skillworks": {
+      "source": {
+        "source": "github",
+        "repo": "5thlayer/skillworks"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "mattpocock-skills@mattpocock": true,
+    "skillworks@skillworks": true
+  }
+}
